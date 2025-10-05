@@ -1,0 +1,223 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Sat Oct 05 13:40:00 2025
+[*]
+[dumpfile] "C:\Users\waric\Documents\lse_project\lse_add_waveform.vcd"
+[dumpfile_mtime] "Sat Oct 05 13:35:00 2025"
+[dumpfile_size] 5948
+[savefile] "C:\Users\waric\Documents\lse_project\lse_add_waveform.gtkw"
+[timestart] 0
+[size] 1400 800
+[pos] 100 100
+*-21.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_lse_add_simple
+[sst_width] 250
+[signals_width] 250
+[sst_expanded] 1
+[sst_vpaned_height] 400
+@28
+tb_lse_add_simple.clk
+@29
+tb_lse_add_simple.rst_n
+@200
+-Clock and Reset
+@c00022
+tb_lse_add_simple.pe_mode[1:0]
+@28
+(0)tb_lse_add_simple.pe_mode[1:0]
+(1)tb_lse_add_simple.pe_mode[1:0]
+@1401200
+-group_end
+@200
+-Control Signals
+@c00022
+tb_lse_add_simple.operand_a[23:0]
+@28
+(0)tb_lse_add_simple.operand_a[23:0]
+(1)tb_lse_add_simple.operand_a[23:0]
+(2)tb_lse_add_simple.operand_a[23:0]
+(3)tb_lse_add_simple.operand_a[23:0]
+(4)tb_lse_add_simple.operand_a[23:0]
+(5)tb_lse_add_simple.operand_a[23:0]
+(6)tb_lse_add_simple.operand_a[23:0]
+(7)tb_lse_add_simple.operand_a[23:0]
+(8)tb_lse_add_simple.operand_a[23:0]
+(9)tb_lse_add_simple.operand_a[23:0]
+(10)tb_lse_add_simple.operand_a[23:0]
+(11)tb_lse_add_simple.operand_a[23:0]
+(12)tb_lse_add_simple.operand_a[23:0]
+(13)tb_lse_add_simple.operand_a[23:0]
+(14)tb_lse_add_simple.operand_a[23:0]
+(15)tb_lse_add_simple.operand_a[23:0]
+(16)tb_lse_add_simple.operand_a[23:0]
+(17)tb_lse_add_simple.operand_a[23:0]
+(18)tb_lse_add_simple.operand_a[23:0]
+(19)tb_lse_add_simple.operand_a[23:0]
+(20)tb_lse_add_simple.operand_a[23:0]
+(21)tb_lse_add_simple.operand_a[23:0]
+(22)tb_lse_add_simple.operand_a[23:0]
+(23)tb_lse_add_simple.operand_a[23:0]
+@1401200
+-group_end
+@c00022
+tb_lse_add_simple.operand_b[23:0]
+@28
+(0)tb_lse_add_simple.operand_b[23:0]
+(1)tb_lse_add_simple.operand_b[23:0]
+(2)tb_lse_add_simple.operand_b[23:0]
+(3)tb_lse_add_simple.operand_b[23:0]
+(4)tb_lse_add_simple.operand_b[23:0]
+(5)tb_lse_add_simple.operand_b[23:0]
+(6)tb_lse_add_simple.operand_b[23:0]
+(7)tb_lse_add_simple.operand_b[23:0]
+(8)tb_lse_add_simple.operand_b[23:0]
+(9)tb_lse_add_simple.operand_b[23:0]
+(10)tb_lse_add_simple.operand_b[23:0]
+(11)tb_lse_add_simple.operand_b[23:0]
+(12)tb_lse_add_simple.operand_b[23:0]
+(13)tb_lse_add_simple.operand_b[23:0]
+(14)tb_lse_add_simple.operand_b[23:0]
+(15)tb_lse_add_simple.operand_b[23:0]
+(16)tb_lse_add_simple.operand_b[23:0]
+(17)tb_lse_add_simple.operand_b[23:0]
+(18)tb_lse_add_simple.operand_b[23:0]
+(19)tb_lse_add_simple.operand_b[23:0]
+(20)tb_lse_add_simple.operand_b[23:0]
+(21)tb_lse_add_simple.operand_b[23:0]
+(22)tb_lse_add_simple.operand_b[23:0]
+(23)tb_lse_add_simple.operand_b[23:0]
+@1401200
+-group_end
+@200
+-Input Operands
+@c00022
+tb_lse_add_simple.sum_result[23:0]
+@28
+(0)tb_lse_add_simple.sum_result[23:0]
+(1)tb_lse_add_simple.sum_result[23:0]
+(2)tb_lse_add_simple.sum_result[23:0]
+(3)tb_lse_add_simple.sum_result[23:0]
+(4)tb_lse_add_simple.sum_result[23:0]
+(5)tb_lse_add_simple.sum_result[23:0]
+(6)tb_lse_add_simple.sum_result[23:0]
+(7)tb_lse_add_simple.sum_result[23:0]
+(8)tb_lse_add_simple.sum_result[23:0]
+(9)tb_lse_add_simple.sum_result[23:0]
+(10)tb_lse_add_simple.sum_result[23:0]
+(11)tb_lse_add_simple.sum_result[23:0]
+(12)tb_lse_add_simple.sum_result[23:0]
+(13)tb_lse_add_simple.sum_result[23:0]
+(14)tb_lse_add_simple.sum_result[23:0]
+(15)tb_lse_add_simple.sum_result[23:0]
+(16)tb_lse_add_simple.sum_result[23:0]
+(17)tb_lse_add_simple.sum_result[23:0]
+(18)tb_lse_add_simple.sum_result[23:0]
+(19)tb_lse_add_simple.sum_result[23:0]
+(20)tb_lse_add_simple.sum_result[23:0]
+(21)tb_lse_add_simple.sum_result[23:0]
+(22)tb_lse_add_simple.sum_result[23:0]
+(23)tb_lse_add_simple.sum_result[23:0]
+@1401200
+-group_end
+@200
+-Output Result
+@22
+tb_lse_add_simple.operand_a[23:0]
+tb_lse_add_simple.operand_b[23:0]
+tb_lse_add_simple.sum_result[23:0]
+@200
+-Hexadecimal View
+@c00025
+tb_lse_add_simple.operand_a[23:18]
+@28
+(0)tb_lse_add_simple.operand_a[23:18]
+(1)tb_lse_add_simple.operand_a[23:18]
+(2)tb_lse_add_simple.operand_a[23:18]
+(3)tb_lse_add_simple.operand_a[23:18]
+(4)tb_lse_add_simple.operand_a[23:18]
+(5)tb_lse_add_simple.operand_a[23:18]
+@1401201
+-6bit_seg3_A
+@c00025
+tb_lse_add_simple.operand_a[17:12]
+@28
+(0)tb_lse_add_simple.operand_a[17:12]
+(1)tb_lse_add_simple.operand_a[17:12]
+(2)tb_lse_add_simple.operand_a[17:12]
+(3)tb_lse_add_simple.operand_a[17:12]
+(4)tb_lse_add_simple.operand_a[17:12]
+(5)tb_lse_add_simple.operand_a[17:12]
+@1401201
+-6bit_seg2_A
+@c00025
+tb_lse_add_simple.operand_a[11:6]
+@28
+(0)tb_lse_add_simple.operand_a[11:6]
+(1)tb_lse_add_simple.operand_a[11:6]
+(2)tb_lse_add_simple.operand_a[11:6]
+(3)tb_lse_add_simple.operand_a[11:6]
+(4)tb_lse_add_simple.operand_a[11:6]
+(5)tb_lse_add_simple.operand_a[11:6]
+@1401201
+-6bit_seg1_A
+@c00025
+tb_lse_add_simple.operand_a[5:0]
+@28
+(0)tb_lse_add_simple.operand_a[5:0]
+(1)tb_lse_add_simple.operand_a[5:0]
+(2)tb_lse_add_simple.operand_a[5:0]
+(3)tb_lse_add_simple.operand_a[5:0]
+(4)tb_lse_add_simple.operand_a[5:0]
+(5)tb_lse_add_simple.operand_a[5:0]
+@1401201
+-6bit_seg0_A
+@200
+-6-bit Segments (Operand A)
+@c00025
+tb_lse_add_simple.sum_result[23:18]
+@28
+(0)tb_lse_add_simple.sum_result[23:18]
+(1)tb_lse_add_simple.sum_result[23:18]
+(2)tb_lse_add_simple.sum_result[23:18]
+(3)tb_lse_add_simple.sum_result[23:18]
+(4)tb_lse_add_simple.sum_result[23:18]
+(5)tb_lse_add_simple.sum_result[23:18]
+@1401201
+-6bit_seg3_Result
+@c00025
+tb_lse_add_simple.sum_result[17:12]
+@28
+(0)tb_lse_add_simple.sum_result[17:12]
+(1)tb_lse_add_simple.sum_result[17:12]
+(2)tb_lse_add_simple.sum_result[17:12]
+(3)tb_lse_add_simple.sum_result[17:12]
+(4)tb_lse_add_simple.sum_result[17:12]
+(5)tb_lse_add_simple.sum_result[17:12]
+@1401201
+-6bit_seg2_Result
+@c00025
+tb_lse_add_simple.sum_result[11:6]
+@28
+(0)tb_lse_add_simple.sum_result[11:6]
+(1)tb_lse_add_simple.sum_result[11:6]
+(2)tb_lse_add_simple.sum_result[11:6]
+(3)tb_lse_add_simple.sum_result[11:6]
+(4)tb_lse_add_simple.sum_result[11:6]
+(5)tb_lse_add_simple.sum_result[11:6]
+@1401201
+-6bit_seg1_Result
+@c00025
+tb_lse_add_simple.sum_result[5:0]
+@28
+(0)tb_lse_add_simple.sum_result[5:0]
+(1)tb_lse_add_simple.sum_result[5:0]
+(2)tb_lse_add_simple.sum_result[5:0]
+(3)tb_lse_add_simple.sum_result[5:0]
+(4)tb_lse_add_simple.sum_result[5:0]
+(5)tb_lse_add_simple.sum_result[5:0]
+@1401201
+-6bit_seg0_Result
+@200
+-6-bit Segments (Result)
+[pattern_trace] 1
+[pattern_trace] 0

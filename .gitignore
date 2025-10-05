@@ -1,0 +1,89 @@
+# =============================================================================
+# .gitignore pour projet SystemVerilog/Verilog avec Icarus Verilog et GTKWave
+# =============================================================================
+
+# Fichiers de sortie de simulation
+simulation_output/
+*.vcd
+*.vvp
+*.lxt
+*.lxt2
+*.vzt
+*.fst
+
+# Fichiers temporaires de compilation
+*.tmp
+*.log
+*~
+*.bak
+*.orig
+*.rej
+
+# Fichiers de compilation Icarus Verilog
+a.out
+verilog.dump
+verilog.log
+
+# Fichiers QuestaSim/ModelSim
+work/
+*.wlf
+*.vstf
+*.do.bak
+transcript
+vsim.wlf
+modelsim.ini
+
+# Fichiers Vivado
+*.jou
+*.pb
+.Xil/
+*.hw
+*.ip_user_files
+*.cache
+*.runs
+*.sim
+vivado*.backup*
+
+# Fichiers de sauvegarde des éditeurs
+*.sv.bak
+*.v.bak
+*.vh.bak
+*.svh.bak
+
+# Fichiers système Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Fichiers système macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Fichiers système Linux
+*~
+.nfs*
+
+# Dossiers temporaires
+temp/
+tmp/
+
+# Fichiers de configuration IDE spécifiques
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+*.code-workspace
+
+# Logs PowerShell
+*.ps1.log
+
+# Sauvegardes automatiques GTKWave
+*.gtkw.bak
+
+# Exclure mais garder la structure des dossiers
+!simulation_output/.gitkeep
+!work/.gitkeep
+
+# Fichiers de documentation générés automatiquement
+docs/generated/

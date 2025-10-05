@@ -1,0 +1,113 @@
+[*]
+[*] GTKWave Configuration for LSE Add Module - Advanced View
+[*] Shows internal DUT signals for debugging
+[*]
+[dumpfile] "../simulation_output/lse_add_waveform.vcd"
+[savefile] "lse_add_advanced.gtkw"
+[timestart] 0
+[size] 1400 900
+[pos] 100 50
+*-19.000000 200000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_lse_add_simple
+[treeopen] tb_lse_add_simple.dut
+[sst_width] 350
+[signals_width] 250
+[sst_expanded] 1
+[sst_vpaned_height] 400
+
+@200
+-=== TESTBENCH LEVEL ===
+@28
+tb_lse_add_simple.clk
+@29
+tb_lse_add_simple.rst_n
+@24
+tb_lse_add_simple.pe_mode[1:0]
+@22
+tb_lse_add_simple.test_count
+
+@200
+-=== INPUT OPERANDS ===
+@22
+tb_lse_add_simple.operand_a[23:0]
+tb_lse_add_simple.operand_b[23:0]
+
+@200
+-=== DUT INPUTS ===
+@22
+tb_lse_add_simple.dut.i_operand_a[23:0]
+tb_lse_add_simple.dut.i_operand_b[23:0]
+@24
+tb_lse_add_simple.dut.i_pe_mode[1:0]
+
+@200
+-=== DUT OUTPUT ===
+@22
+tb_lse_add_simple.dut.o_sum[23:0]
+
+@200
+-=== COMPARISON (Testbench vs DUT) ===
+@22
+tb_lse_add_simple.sum_result[23:0]
+tb_lse_add_simple.dut.o_sum[23:0]
+
+@200
+-=== 24-BIT MODE SEGMENTS ===
+@23
+[color] 2
+tb_lse_add_simple.operand_a[23:12]
+[color] 3
+tb_lse_add_simple.operand_a[11:0]
+@200
+-
+@23
+[color] 2
+tb_lse_add_simple.operand_b[23:12]
+[color] 3
+tb_lse_add_simple.operand_b[11:0]
+@200
+-
+@23
+[color] 2
+tb_lse_add_simple.sum_result[23:12]
+[color] 3
+tb_lse_add_simple.sum_result[11:0]
+
+@200
+-=== 6-BIT MODE SEGMENTS ===
+@23
+[color] 4
+tb_lse_add_simple.operand_a[23:18]
+[color] 5
+tb_lse_add_simple.operand_a[17:12]
+[color] 6
+tb_lse_add_simple.operand_a[11:6]
+[color] 7
+tb_lse_add_simple.operand_a[5:0]
+
+@200
+-
+@23
+[color] 4
+tb_lse_add_simple.operand_b[23:18]
+[color] 5
+tb_lse_add_simple.operand_b[17:12]
+[color] 6
+tb_lse_add_simple.operand_b[11:6]
+[color] 7
+tb_lse_add_simple.operand_b[5:0]
+
+@200
+-
+@23
+[color] 4
+tb_lse_add_simple.sum_result[23:18]
+[color] 5
+tb_lse_add_simple.sum_result[17:12]
+[color] 6
+tb_lse_add_simple.sum_result[11:6]
+[color] 7
+tb_lse_add_simple.sum_result[5:0]
+
+[pattern_trace] 1
+[pattern_trace] 0
