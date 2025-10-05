@@ -15,6 +15,8 @@ Date: October 2025
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+import os
+import re
 from typing import List, Tuple
 import argparse
 
@@ -104,20 +106,97 @@ def generate_systemverilog_rom(values: List[int], bit_width: int = 10) -> str:
     Returns:
         SystemVerilog code string
     """
-    sv_code = f"// CLUT ROM Data - {len(values)} entries x {bit_width} bits\n"
-    sv_code += f"logic [{bit_width-1}:0] lut_rom [{len(values)}] = '{{\n"
+    sv_code = f"    logic [ENTRY_WIDTH-1:0] lut_rom [ENTRIES] = '{{\n"
     
     for i, val in enumerate(values):
-        hex_val = f"{bit_width}'h{val:0{(bit_width+3)//4}X}"
-        comment = f"  // Entry {i:2d}: f({i/len(values):.4f}) correction"
+        hex_val = f"10'h{val:03X}"
+        comment = f"// Entry {i:2d}: f({i/len(values):.4f}) correction"
         
         if i == len(values) - 1:
-            sv_code += f"    {hex_val}   {comment}\n"
+            sv_code += f"        {hex_val}   {comment}\n"
         else:
-            sv_code += f"    {hex_val},  {comment}\n"
+            sv_code += f"        {hex_val},  {comment}\n"
     
-    sv_code += "};\n"
+    sv_code += "    };"
     return sv_code
+
+def generate_simple_case_statements(values: List[int], bit_width: int = 10) -> str:
+    """
+    Generate case statements for simple SystemVerilog module.
+    
+    Args:
+        values: List of quantized values
+        bit_width: Bit width per entry
+        
+    Returns:
+        SystemVerilog case statements
+    """
+    sv_code = "                case (address)\n"
+    
+    for i, val in enumerate(values):
+        hex_val = f"10'h{val:03X}"
+        hex_addr = f"4'h{i:X}"
+        comment = f"// Entry {i}"
+        
+        sv_code += f"                    {hex_addr}: correction <= {hex_val};  {comment}\n"
+    
+    sv_code += "                    default: correction <= 10'h000;\n"
+    sv_code += "                endcase"
+    return sv_code
+
+def update_systemverilog_files(values: List[int], bit_width: int = 10, 
+                              project_root: str = "../../") -> None:
+    """
+    Update SystemVerilog files directly with new LUT values.
+    
+    Args:
+        values: List of quantized values
+        bit_width: Bit width per entry
+        project_root: Path to project root directory
+    """
+    # File paths relative to script location
+    lse_clut_path = os.path.join(project_root, "modules", "lut", "lse_clut.sv")
+    lse_clut_simple_path = os.path.join(project_root, "modules", "lut", "lse_clut_simple.sv")
+    
+    # Update lse_clut.sv (advanced module with ROM array)
+    if os.path.exists(lse_clut_path):
+        with open(lse_clut_path, 'r') as f:
+            content = f.read()
+        
+        # Generate new ROM code
+        new_rom_code = generate_systemverilog_rom(values, bit_width)
+        
+        # Replace content between flags
+        pattern = r'(// PYTHON SCRIPT START\n).*?(// PYTHON SCRIPT END)'
+        replacement = f'\\1{new_rom_code}\n    \\2'
+        updated_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        
+        with open(lse_clut_path, 'w') as f:
+            f.write(updated_content)
+        
+        print(f"[OK] Updated: {lse_clut_path}")
+    else:
+        print(f"[WARNING] File not found: {lse_clut_path}")
+    
+    # Update lse_clut_simple.sv (simple module with case statements)  
+    if os.path.exists(lse_clut_simple_path):
+        with open(lse_clut_simple_path, 'r') as f:
+            content = f.read()
+        
+        # Generate new case statements
+        new_case_code = generate_simple_case_statements(values, bit_width)
+        
+        # Replace content between flags
+        pattern = r'(// PYTHON SCRIPT START\n).*?(// PYTHON SCRIPT END)'
+        replacement = f'\\1{new_case_code}\n                \\2'
+        updated_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+        
+        with open(lse_clut_simple_path, 'w') as f:
+            f.write(updated_content)
+        
+        print(f"[OK] Updated: {lse_clut_simple_path}")
+    else:
+        print(f"[WARNING] File not found: {lse_clut_simple_path}")
 
 def plot_lse_functions(sample_points: np.ndarray, corrections: List[float], 
                       quantized_values: List[int], max_correction: float, 
@@ -190,6 +269,8 @@ def main():
     parser.add_argument('--entries', type=int, default=16, help='Number of LUT entries')
     parser.add_argument('--bits', type=int, default=10, help='Bit width per entry')
     parser.add_argument('--output', type=str, help='Output file for SystemVerilog code')
+    parser.add_argument('--update-sv', action='store_true', help='Update SystemVerilog files directly')
+    parser.add_argument('--project-root', type=str, default='../../', help='Path to project root')
     parser.add_argument('--plot', action='store_true', help='Show analysis plots')
     parser.add_argument('--save-plot', type=str, help='Save plot to file')
     
@@ -211,6 +292,12 @@ def main():
     
     # Generate SystemVerilog code
     sv_code = generate_systemverilog_rom(quantized_values, args.bits)
+    
+    # Update SystemVerilog files directly if requested
+    if args.update_sv:
+        print(f"\n[INFO] Updating SystemVerilog files...")
+        update_systemverilog_files(quantized_values, args.bits, args.project_root)
+        print(f"[SUCCESS] SystemVerilog files updated with new CLUT values!")
     
     if args.output:
         with open(args.output, 'w') as f:

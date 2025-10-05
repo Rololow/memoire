@@ -34,24 +34,27 @@ module lse_clut #(
     // =============================================================================
     // Pre-computed correction values for f(x) = log₂(1 + 2^x) - x approximation error
     // Values computed via Python script for range [0, 1) with 16 uniform samples
+    
+    // PYTHON SCRIPT START
     logic [ENTRY_WIDTH-1:0] lut_rom [ENTRIES] = '{
-        10'h000,  // Entry 0:  f(0.0000) correction
-        10'h012,  // Entry 1:  f(0.0625) correction  
-        10'h023,  // Entry 2:  f(0.1250) correction
-        10'h033,  // Entry 3:  f(0.1875) correction
-        10'h042,  // Entry 4:  f(0.2500) correction
-        10'h050,  // Entry 5:  f(0.3125) correction
-        10'h05D,  // Entry 6:  f(0.3750) correction
-        10'h069,  // Entry 7:  f(0.4375) correction
-        10'h074,  // Entry 8:  f(0.5000) correction
-        10'h07E,  // Entry 9:  f(0.5625) correction
-        10'h087,  // Entry 10: f(0.6250) correction
-        10'h08F,  // Entry 11: f(0.6875) correction
-        10'h096,  // Entry 12: f(0.7500) correction
-        10'h09C,  // Entry 13: f(0.8125) correction
-        10'h0A1,  // Entry 14: f(0.8750) correction
-        10'h0A5   // Entry 15: f(0.9375) correction
+        10'h3FF,  // Entry  0: f(0.0000) correction
+        10'h3DF,  // Entry  1: f(0.0625) correction
+        10'h3C0,  // Entry  2: f(0.1250) correction
+        10'h3A2,  // Entry  3: f(0.1875) correction
+        10'h385,  // Entry  4: f(0.2500) correction
+        10'h368,  // Entry  5: f(0.3125) correction
+        10'h34C,  // Entry  6: f(0.3750) correction
+        10'h330,  // Entry  7: f(0.4375) correction
+        10'h315,  // Entry  8: f(0.5000) correction
+        10'h2FB,  // Entry  9: f(0.5625) correction
+        10'h2E2,  // Entry 10: f(0.6250) correction
+        10'h2C9,  // Entry 11: f(0.6875) correction
+        10'h2B1,  // Entry 12: f(0.7500) correction
+        10'h299,  // Entry 13: f(0.8125) correction
+        10'h282,  // Entry 14: f(0.8750) correction
+        10'h26C   // Entry 15: f(0.9375) correction
     };
+    // PYTHON SCRIPT END
     
     // =============================================================================
     // Internal Signals
