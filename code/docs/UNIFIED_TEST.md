@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Le script `run_lse_tests.py` est le script unifié pour tester tous les modules LSE-PE, incluant la nouvelle implémentation de l'**Algorithm 1** dans le module `lse_add`.
+Le script `run_lse_tests.py` orchestre la compilation et la simulation de l’ensemble des testbenches LSE-PE, y compris la validation de l’implémentation de l’**Algorithm 1** (`lse_add`).
 
 ## Prérequis
 
@@ -33,29 +33,40 @@ MODELSIM_BIN = r"C:\votre\chemin\vers\modelsim\win32aloem"
 
 ## Utilisation
 
+### Préparation (vecteurs de référence LSE Add)
+
+Avant de lancer la simulation, générer les vecteurs exacts utilisés par `tb_lse_add_unified` :
+
+```powershell
+cd C:\Users\waric\Documents\memoire\code
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe scripts/python/generate_lse_add_vectors.py
+```
+
+Le fichier `testbenches/core/reference/lse_add_reference_vectors.svh` sera régénéré automatiquement. Adapter les options (`--tolerance-lsb`, `--random`, `--seed`) si besoin.
+
 ### Commandes de Base
 
-```bash
+```powershell
 # Tester tous les modules
-python run_lse_tests.py
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py
 
 # Tester uniquement LSE Add (Algorithm 1)
-python run_lse_tests.py -m lse_add
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py -m lse_add
 
 # Tester plusieurs modules spécifiques
-python run_lse_tests.py -m lse_add lse_mult lse_acc
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py -m lse_add lse_mult lse_acc
 
 # Mode verbose avec détails de compilation et simulation
-python run_lse_tests.py -m lse_add -v
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py -m lse_add -v
 
 # Nettoyer avant de tester
-python run_lse_tests.py --clean
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py --clean
 
 # Sauvegarder le rapport dans un fichier spécifique
-python run_lse_tests.py --report mon_rapport.json
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py --report ..\simulation_output\mon_rapport.json
 
 # Ne pas mettre à jour les valeurs CLUT
-python run_lse_tests.py --no-clut-update
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py --no-clut-update
 ```
 
 ### Options Disponibles
@@ -107,24 +118,7 @@ python run_lse_tests.py --no-clut-update
 
 ### Format de Sortie
 
-```
-==============================================================================
-                           RÉSUMÉ GLOBAL DES TESTS
-==============================================================================
-
-Statistiques Modules:
-  Total modules testés: 1
-  [OK] Modules parfaits:   0       ← Tous les tests passent
-  ⚠ Modules partiels:   1          ← Certains tests échouent
-  [ER] Modules échoués:    0       ← Erreur de compilation/simulation
-
-Statistiques Tests:
-  Total tests:          19
-  Tests réussis:        13
-  Tests échoués:        6
-  Taux de succès:       68.4%      ← Pourcentage global
-  Durée totale:         1.6s
-```
+`run_lse_tests.py` affiche un résumé par module (PASS / PARTIAL / FAIL) ainsi que le total des tests passés/échoués. Un rapport JSON détaillé est également écrit (voir `--report`). Les chiffres exacts dépendront de l’état courant des sources et des vecteurs générés.
 
 ### Interprétation des Statuts
 
@@ -141,42 +135,15 @@ Statistiques Tests:
 - **50-69%** : ⚠️ Moyen, révision nécessaire
 - **< 50%** : ❌ Problèmes significatifs
 
-## Résultats Actuels du Module LSE_ADD
+## Résultats et diagnostic
 
-### État Actuel (Algorithm 1 Implementation)
+Le script ne fournit pas de « vérité absolue » hardcodée : il interprète la sortie des testbenches. Pensez à :
 
-**Taux de réussite** : 68.4% (13/19 tests)
+- vérifier le rapport JSON (`simulation_output/lse_test_report.json` par défaut) après chaque exécution ;
+- relancer `generate_lse_add_vectors.py` lorsqu’une modification touche `lse_add` ou son testbench ;
+- comparer les vecteurs générés avec vos attentes (fichiers JSON/SVH).
 
-**Tests qui passent** :
-- ✅ Gestion des valeurs spéciales (NEG_INF)
-- ✅ Valeurs égales (LSE(10.0, 10.0) = 11.0)
-- ✅ Distance moyenne (LSE(10.0, 5.0))
-- ✅ Grande distance (delta > 10)
-- ✅ Propriété commutative
-- ✅ Mode SIMD 6-bit
-- ✅ Cas limites et overflow
-
-**Tests qui échouent** :
-- ❌ LSE(5.0, 4.5) : Attendu ≈ 5.585, Obtenu = 5.828 (erreur ~4%)
-- ❌ LSE(3.0, 2.0) : Attendu ≈ 3.585, Obtenu = 3.563 (erreur ~1%)
-- ❌ LSE(8.0, 4.0) : Attendu ≈ 8.087, Obtenu = 8.073 (erreur ~0.2%)
-- ❌ LSE(0.0, 4.0) : Gestion du zéro nécessite ajustements
-- ❌ LSE(4.0, 0.0) : Idem
-- ❌ LSE(0.0, 0.0) : Cas spécial zéro
-
-### Analyse
-
-L'implémentation de l'Algorithm 1 fonctionne correctement pour :
-- Les valeurs spéciales (infini négatif)
-- Les grandes distances (delta > 5)
-- Les propriétés mathématiques (commutativité)
-- Le mode SIMD alternatif
-
-Les erreurs observées sont principalement pour :
-- Les petits deltas (< 2.0) : Légère imprécision dans l'approximation
-- La gestion du zéro : Nécessite un cas spécial
-
-**Précision moyenne** : ~1-2% d'erreur, ce qui est acceptable pour une implémentation matérielle.
+Les informations chiffrées d’un rapport précédent (ex. succès partiel du 7 octobre 2025) ne reflètent pas nécessairement l’état courant.
 
 ## Rapport JSON
 
@@ -184,7 +151,7 @@ Le script génère automatiquement un rapport JSON détaillé :
 
 ```json
 {
-  "timestamp": "2025-10-07T20:49:18.123456",
+  "timestamp": "2025-10-07T20:55:36.902376",
   "summary": {
     "total_modules": 1,
     "passed_modules": 0,
@@ -201,16 +168,13 @@ Le script génère automatiquement un rapport JSON détaillé :
       "module_id": "lse_add",
       "name": "LSE Add (Algorithm 1 Implementation)",
       "status": "PARTIAL",
-      "total_tests": 19,
-      "passed_tests": 13,
-      "failed_tests": 6,
-      "success_rate": 68.4,
-      "duration": 1.62,
-      "details": [...]
+      "details": ["#  PASS - Commutative: LSE(6.0, 4.0) = LSE(4.0, 6.0)"]
     }
   ]
 }
 ```
+
+Utilisez ce format comme base et comparez les chiffres lors des prochaines exécutions.
 
 ## Dépannage
 
@@ -255,7 +219,7 @@ code/
 ├── scripts/
 │   ├── run_lse_tests.py          ← Script principal unifié
 │   └── python/
-│       └── generate_clut_values.py
+│       └── generate_lse_add_vectors.py
 ├── modules/
 │   └── core/
 │       ├── lse_add.sv            ← Implémentation Algorithm 1
@@ -264,13 +228,15 @@ code/
 │       └── register.sv
 ├── testbenches/
 │   └── core/
+│       ├── reference/            ← Vecteurs auto-générés (SVH)
 │       ├── tb_lse_add_unified.sv ← Testbench mise à jour
 │       ├── tb_lse_mult_unified.sv
 │       ├── tb_lse_acc_unified.sv
 │       └── tb_register_unified.sv
 ├── simulation_output/
+│   ├── *.json                    ← Rapports et vecteurs de référence
 │   └── *.vcd                     ← Fichiers de forme d'onde
-└── work/                         ← Fichiers de compilation ModelSim
+└── work/                         ← Bibliothèque ModelSim
 ```
 
 ## Exemple de Session Complète

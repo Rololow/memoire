@@ -3,7 +3,7 @@
 =============================================================================
 Script de Test Unifié LSE - Tous les Modules
 Description: Compile et exécute tous les testbenches LSE avec ModelSim/QuestaSim
-Author: LSE-PE Project
+Author: Robin Warichet
 Date: October 2025
 =============================================================================
 """
@@ -427,7 +427,7 @@ def run_test_module(module_id: str, config: Dict, vlib_cmd: str, vlog_cmd: str, 
         "PASS": "[+]",
         "PARTIAL": "[!]",
         "FAIL": "[X]",
-        "UNKNOWN": "❓"
+        "UNKNOWN": "[?]"
     }
     
     color = status_colors.get(results["status"], Colors.GRAY)
@@ -565,7 +565,7 @@ def generate_summary_report(all_results: List[Dict], output_file: Optional[Path]
         with open(output_file, 'w') as f:
             json.dump(report, f, indent=2)
         
-        print(f"\n{Colors.BLUE}ℹ️  Rapport JSON sauvé: {output_file}{Colors.RESET}")
+        print(f"\n{Colors.BLUE}[i] Rapport JSON sauvé: {output_file}{Colors.RESET}")
 
 
 def main():

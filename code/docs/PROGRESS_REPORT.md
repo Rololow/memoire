@@ -2,7 +2,9 @@
 
 **Date:** 7 octobre 2025  
 **Phase:** Consolidation & Documentation  
-**Statut:** 🎯 **SYSTÈME CORE VALIDÉ À 100%**
+**Statut:** 🔄 **Revalidation en cours (nouvelles références LSE Add)**
+
+> Mise à jour : les vecteurs de référence `lse_add` sont désormais générés automatiquement via `scripts/python/generate_lse_add_vectors.py`. Les résultats précédemment reportés (94 % de succès global) correspondent à la campagne de tests avant cette intégration et doivent être confirmés par une nouvelle exécution de `run_lse_tests.py`.
 
 ## 🏆 Architecture Core Complétée
 
@@ -10,9 +12,9 @@
 ### ✅ **Modules Core** - Addition, Multiplication, Accumulation (94% Success Rate)
 ### ✅ **CLUT Shared** - Look-Up Table Partagée (Production Ready)
 
-## 🎯 **SYSTÈME LSE-PE CORE** ✅ **94% VALIDÉ**
+## 🎯 **SYSTÈME LSE-PE CORE** ✅ **94% VALIDÉ** *(campagne précédente)*
 
-### **Résultats de Validation (7 octobre 2025)**
+### **Résultats de Validation (7 octobre 2025)** *(avant régénération des vecteurs `lse_add`)*
 | Module | Tests | Succès | Taux | Status |
 |--------|-------|--------|------|---------|
 | **LSE Shared System** | 5 tests | 5/5 | **100%** | ✅ PRODUCTION READY |
@@ -341,14 +343,15 @@ testbenches/
     └── tb_register_unified.sv    ✅ Test registre
 ```
 
-### Scripts PowerShell (Automation)
+### Scripts & Générateurs (Automation)
 ```
 scripts/
 ├── test_shared_system.ps1        ✅ Test système principal
 ├── quick_run.ps1                 ✅ Validation rapide tous modules
+├── run_lse_tests.py              ✅ Orchestrateur ModelSim/QuestaSim
 └── python/
-    ├── generate_clut_values.py   ✅ Générateur CLUT
-    └── clut_report.json          ✅ Rapport valeurs CLUT
+   ├── generate_lse_add_vectors.py ✅ Vecteurs de référence Algorithm 1
+   └── (legacy) generate_clut_values.py  ❌ Retiré / archive
 ```
 
 ### Configurations GTKWave
@@ -366,8 +369,8 @@ simulation_output/
 ├── lse_add_waveform.vcd          ✅ Waveforms addition
 ├── lse_mult_waveform.vcd         ✅ Waveforms multiplication
 ├── lse_acc_waveform.vcd          ✅ Waveforms accumulation
-├── lse_clut_values.sv            ✅ Valeurs CLUT générées
-└── lse_clut_values.json          ✅ Rapport CLUT détaillé
+├── lse_add_reference_vectors.json ✅ Vecteurs exacts (JSON)
+└── lse_test_report.json          ✅ Rapport consolidé des tests
 ```
 
 ## 🎉 Conclusion

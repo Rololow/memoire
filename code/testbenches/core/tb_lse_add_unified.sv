@@ -8,6 +8,8 @@
 
 `timescale 1ns/1ps
 
+`include "reference/lse_add_reference_vectors.svh"
+
 module tb_lse_add_unified;
 
   // =========================================================================
@@ -110,16 +112,19 @@ module tb_lse_add_unified;
   // =========================================================================
   // Test Vector Application Task with Tolerance
   // =========================================================================
-  task apply_test_vector;
-    input [WIDTH-1:0] test_a;
-    input [WIDTH-1:0] test_b;
-    input [1:0] test_mode;
-    input [WIDTH-1:0] expected_min;  // Minimum acceptable value
-    input [WIDTH-1:0] expected_max;  // Maximum acceptable value
-    input [200*8-1:0] test_name;  // String for test description
-    
-    real a_real, b_real, result_real, expected_real;
-    
+  task automatic apply_test_vector(
+    input [WIDTH-1:0] test_a,
+    input [WIDTH-1:0] test_b,
+    input [1:0] test_mode,
+    input [WIDTH-1:0] expected_min,  // Minimum acceptable value
+    input [WIDTH-1:0] expected_max,  // Maximum acceptable value
+    input string test_name,          // Human-readable label
+    input bit has_reference_exact = 1'b0,
+    input real reference_exact = 0.0,
+    input real reference_tolerance = 0.0
+  );
+    real a_real, b_real, result_real, reference_real, tolerance_real;
+
     begin
       test_count = test_count + 1;
       
@@ -138,7 +143,14 @@ module tb_lse_add_unified;
       a_real = fixed_to_real(test_a);
       b_real = fixed_to_real(test_b);
       result_real = fixed_to_real(result);
-      expected_real = lse_reference(a_real, b_real);
+      
+      if (has_reference_exact) begin
+        reference_real = reference_exact;
+        tolerance_real = reference_tolerance;
+      end else begin
+        reference_real = lse_reference(a_real, b_real);
+        tolerance_real = (fixed_to_real(expected_max) - fixed_to_real(expected_min)) / 2.0;
+      end
       
       // Check result within tolerance range
       if (result >= expected_min && result <= expected_max) begin
@@ -148,7 +160,6 @@ module tb_lse_add_unified;
                  test_a, a_real, test_b, b_real, test_mode);
         $display("    Expected: [%h, %h], Got: %h (%.3f)", 
                  expected_min, expected_max, result, result_real);
-        $display("    Reference: %.3f", expected_real);
       end else begin
         fail_count = fail_count + 1;
         $display(" FAIL - %s", test_name);
@@ -156,8 +167,17 @@ module tb_lse_add_unified;
                  test_a, a_real, test_b, b_real, test_mode);
         $display("    Expected: [%h, %h], Got: %h (%.3f)", 
                  expected_min, expected_max, result, result_real);
-        $display("    Reference: %.3f, Error: %.3f", 
-                 expected_real, result_real - expected_real);
+        $display("    Error (Result - Reference): %.6f", result_real - reference_real);
+      end
+
+      if (has_reference_exact) begin
+        $display("    Exact reference: %.6f", reference_real);
+        $display("    Allowed tolerance: +/-%.6f", tolerance_real);
+      end else begin
+        $display("    Reference (computed): %.3f", reference_real);
+        if (expected_max != expected_min) begin
+          $display("    Allowed tolerance: +/-%.6f", tolerance_real);
+        end
       end
       
       $display("");
@@ -165,12 +185,13 @@ module tb_lse_add_unified;
   endtask
   
   // Exact test vector (for special cases)
-  task apply_exact_test;
-    input [WIDTH-1:0] test_a;
-    input [WIDTH-1:0] test_b;
-    input [1:0] test_mode;
-    input [WIDTH-1:0] expected;
-    input [200*8-1:0] test_name;
+  task automatic apply_exact_test(
+    input [WIDTH-1:0] test_a,
+    input [WIDTH-1:0] test_b,
+    input [1:0] test_mode,
+    input [WIDTH-1:0] expected,
+    input string test_name
+  );
     begin
       apply_test_vector(test_a, test_b, test_mode, expected, expected, test_name);
     end
@@ -232,6 +253,7 @@ module tb_lse_add_unified;
   // Main Test Sequence
   // =========================================================================
   initial begin
+    int ref_idx;
     $display("=============================================================================");
     $display("              Unified LSE Add Testbench Started");
     $display("=============================================================================");
@@ -253,6 +275,33 @@ module tb_lse_add_unified;
     
     // Wait for initial stabilization
     #(CLK_PERIOD);
+
+    // =====================================================================
+    // Test Suite 0: Auto-generated high-precision reference vectors
+    // =====================================================================
+    if (LSE_ADD_REFERENCE_VECTOR_COUNT > 0) begin
+      $display("\n=== Test Suite 0: Auto-generated Reference Vectors ===");
+      for (ref_idx = 0; ref_idx < LSE_ADD_REFERENCE_VECTOR_COUNT; ref_idx++) begin
+        automatic lse_add_reference_vector_t vec = LSE_ADD_REFERENCE_VECTORS[ref_idx];
+        automatic string label = (vec.label.len() != 0)
+          ? vec.label
+          : $sformatf("reference_vector_%0d", ref_idx);
+        apply_test_vector(
+          vec.operand_a,
+          vec.operand_b,
+          2'b00,
+          vec.min_expected,
+          vec.max_expected,
+          label,
+          1'b1,
+          vec.exact_value,
+          vec.error_tolerance
+        );
+      end
+    end else begin
+      $display("\n=== Test Suite 0: Auto-generated Reference Vectors (missing) ===");
+      $display("No reference vectors found. Run scripts/python/generate_lse_add_vectors.py to populate them.");
+    end
     
     // =====================================================================
     // Test Suite 1: Special Values (Exact matches required)
