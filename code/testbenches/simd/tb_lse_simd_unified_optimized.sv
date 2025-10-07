@@ -101,10 +101,10 @@ module tb_lse_simd_unified_optimized;
             
             // Check result
             if (result == expected_result) begin
-                $display("✅ PASS: %s - Result: %h (Valid: %b)", test_name, result, valid_out);
+                $display(" PASS: %s - Result: %h (Valid: %b)", test_name, result, valid_out);
                 pass_count++;
             end else begin
-                $display("❌ FAIL: %s", test_name);
+                $display(" FAIL: %s", test_name);
                 $display("   Expected: %h, Got: %h (Valid: %b)", expected_result, result, valid_out);
                 fail_count++;
             end
@@ -135,7 +135,7 @@ module tb_lse_simd_unified_optimized;
         rst = 1'b0;
         repeat(3) @(posedge clk);
         
-        $display("\n🧪 Starting Python-verified unified tests...");
+        $display("\n Starting Python-verified unified tests...");
         
         // =====================================================================
         // Core Python-Generated Test Cases - All Verified to Pass
@@ -160,7 +160,7 @@ module tb_lse_simd_unified_optimized;
         test_mode(2'b10, 24'h081044, 24'h041844, 24'h081844, "4×6b detailed");
         
         // Test 7: Mode switching validation (Python-corrected)
-        $display("\n🔄 Mode switching test...");
+        $display("\n Mode switching test...");
         test_mode(2'b00, 24'h123456, 24'h654321, 24'h654321, "Mode 0 switching (24-bit)");
         test_mode(2'b01, 24'h123456, 24'h654321, 24'h654456, "Mode 1 switching (2×12b)");
         test_mode(2'b10, 24'h123456, 24'h654321, 24'h663461, "Mode 2 switching (4×6b)");
@@ -176,9 +176,9 @@ module tb_lse_simd_unified_optimized;
         $display("Failed:      %0d", fail_count);
         
         if (fail_count == 0) begin
-            $display("🎉 ALL TESTS PASSED! SIMD Unified module working with optimized values.");
+            $display(" ALL TESTS PASSED! SIMD Unified module working with optimized values.");
         end else begin
-            $display("⚠️  %0d test(s) failed. Check implementation.", fail_count);
+            $display("  %0d test(s) failed. Check implementation.", fail_count);
         end
         
         if (test_count > 0) begin
@@ -193,7 +193,7 @@ module tb_lse_simd_unified_optimized;
     // =========================================================================
     initial begin
         #100000; // 100µs timeout
-        $display("\n⚠️ TIMEOUT: Testbench exceeded maximum simulation time");
+        $display("\n TIMEOUT: Testbench exceeded maximum simulation time");
         $finish;
     end
 

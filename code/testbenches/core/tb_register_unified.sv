@@ -73,12 +73,12 @@ module tb_register_unified;
       // Check result
       if (data_out == expected) begin
         pass_count = pass_count + 1;
-        $display("✅ PASS - %s", test_name);
+        $display(" PASS - %s", test_name);
         $display("    Input: %h, Reset: %b", test_data, test_reset);
         $display("    Expected: %h, Got: %h", expected, data_out);
       end else begin
         fail_count = fail_count + 1;
-        $display("❌ FAIL - %s", test_name);
+        $display(" FAIL - %s", test_name);
         $display("    Input: %h, Reset: %b", test_data, test_reset);
         $display("    Expected: %h, Got: %h", expected, data_out);
       end
@@ -144,16 +144,16 @@ module tb_register_unified;
       
       if (data_out == 32'h87654321) begin
         pass_count = pass_count + 1;
-        $display("✅ PASS - Data Persistence: Output unchanged without clock");
+        $display(" PASS - Data Persistence: Output unchanged without clock");
         $display("    Stored: %h, Input changed to: %h, Output: %h", 32'h87654321, 32'h11111111, data_out);
       end else begin
         fail_count = fail_count + 1;
-        $display("❌ FAIL - Data Persistence: Output changed without clock");
+        $display(" FAIL - Data Persistence: Output changed without clock");
         $display("    Expected: %h, Got: %h", 32'h87654321, data_out);
       end
     end else begin
       fail_count = fail_count + 1;
-      $display("❌ FAIL - Initial storage failed");
+      $display(" FAIL - Initial storage failed");
     end
     
     test_count = test_count + 1;
@@ -203,9 +203,9 @@ module tb_register_unified;
     $display("=============================================================================");
     
     if (fail_count == 0) begin
-      $display("🎉 ALL TESTS PASSED! Register module is functioning correctly.");
+      $display(" ALL TESTS PASSED! Register module is functioning correctly.");
     end else begin
-      $display("⚠️  Some tests failed. Please review the implementation.");
+      $display(" Some tests failed. Please review the implementation.");
     end
     
     $display("=============================================================================");

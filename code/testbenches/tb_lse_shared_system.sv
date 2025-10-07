@@ -386,9 +386,9 @@ module tb_lse_shared_system;
         $display("=============================================================================");
         
         if (fail_count == 0) begin
-            $display("🎉 ALL TESTS PASSED! 🎉");
+            $display(" ALL TESTS PASSED! ");
         end else begin
-            $display("❌ SOME TESTS FAILED ❌");
+            $display(" SOME TESTS FAILED ");
         end
         
         $display("Final system status: Operations=%0d, Ready=%b", 
@@ -413,7 +413,7 @@ module tb_lse_shared_system;
         forever begin
             @(posedge clk);
             if (global_enable && |valid_array) begin
-                $display("@ %0t: Valid outputs detected, Op count=%0d", 
+                $display("@%0t: Valid outputs detected, Op count=%0d", 
                          $time, operation_count);
             end
         end

@@ -165,9 +165,9 @@ module tb_lse_acc_unified;
     $display("=============================================================================");
     
     if (fail_count == 0) begin
-      $display("🎉 ALL TESTS PASSED! LSE Acc module is functioning correctly.");
+      $display(" ALL TESTS PASSED! LSE Acc module is functioning correctly.");
     end else begin
-      $display("⚠️  Some tests failed. Please review the implementation.");
+      $display("  Some tests failed. Please review the implementation.");
     end
     
     $display("=============================================================================");

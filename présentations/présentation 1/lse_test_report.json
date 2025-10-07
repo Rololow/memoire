@@ -1,0 +1,94 @@
+{
+  "timestamp": "2025-10-07T20:51:28.319909",
+  "summary": {
+    "total_modules": 5,
+    "passed_modules": 3,
+    "partial_modules": 2,
+    "failed_modules": 0,
+    "total_tests": 75,
+    "total_passed": 65,
+    "total_failed": 10,
+    "global_success_rate": 86.66666666666667,
+    "total_duration": 8.222196
+  },
+  "modules": [
+    {
+      "module_id": "lse_add",
+      "name": "LSE Add (Algorithm 1 Implementation)",
+      "description": "Addition LSE avec impl\u00e9mentation Algorithm 1 (LSE-PE NeurIPS 2024)",
+      "status": "PARTIAL",
+      "total_tests": 19,
+      "passed_tests": 13,
+      "failed_tests": 6,
+      "success_rate": 68.42105263157895,
+      "duration": 1.405627,
+      "details": [
+        "#  PASS - Commutative: LSE(6.0, 4.0) = LSE(4.0, 6.0)"
+      ]
+    },
+    {
+      "module_id": "lse_mult",
+      "name": "LSE Mult (Core)",
+      "description": "Multiplication log-space",
+      "status": "PASS",
+      "total_tests": 14,
+      "passed_tests": 14,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 1.389857,
+      "details": [
+        "#  ALL TESTS PASSED! LSE Mult module is functioning correctly."
+      ]
+    },
+    {
+      "module_id": "lse_acc",
+      "name": "LSE Accumulator (Core)",
+      "description": "Accumulation LSE 16-bit",
+      "status": "PARTIAL",
+      "total_tests": 18,
+      "passed_tests": 14,
+      "failed_tests": 4,
+      "success_rate": 77.77777777777779,
+      "duration": 1.514356,
+      "details": []
+    },
+    {
+      "module_id": "register",
+      "name": "Register (Core)",
+      "description": "Registre pipeline g\u00e9n\u00e9rique",
+      "status": "PASS",
+      "total_tests": 19,
+      "passed_tests": 19,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 1.478977,
+      "details": [
+        "#  PASS - Data Persistence: Output unchanged without clock",
+        "#  ALL TESTS PASSED! Register module is functioning correctly."
+      ]
+    },
+    {
+      "module_id": "lse_shared_system",
+      "name": "LSE Shared System",
+      "description": "Syst\u00e8me complet avec 4 MACs et CLUT partag\u00e9e",
+      "status": "PASS",
+      "total_tests": 5,
+      "passed_tests": 5,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 2.433379,
+      "details": [
+        "#   PASS: MAC[0] exact match",
+        "# \ufffd?? Single MAC Operation PASSED",
+        "#   PASS: MAC[0] exact match",
+        "#   PASS: MAC[1] exact match",
+        "#   PASS: MAC[2] exact match",
+        "#   PASS: MAC[3] exact match",
+        "# \ufffd?? Parallel MAC Operations PASSED",
+        "#   PASS: MAC[3] exact match",
+        "# \ufffd?? Sequential MAC Operations PASSED",
+        "#   PASS: MAC[0] exact match"
+      ]
+    }
+  ]
+}

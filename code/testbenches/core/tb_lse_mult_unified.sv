@@ -66,12 +66,12 @@ module tb_lse_mult_unified;
       // Check result
       if (result == expected) begin
         pass_count = pass_count + 1;
-        $display("✅ PASS - %s", test_name);
+        $display(" PASS - %s", test_name);
         $display("    Inputs: A=%h, B=%h, Mode=%b", test_a, test_b, test_mode);
         $display("    Expected: %h, Got: %h", expected, result);
       end else begin
         fail_count = fail_count + 1;
-        $display("❌ FAIL - %s", test_name);
+        $display(" FAIL - %s", test_name);
         $display("    Inputs: A=%h, B=%h, Mode=%b", test_a, test_b, test_mode);
         $display("    Expected: %h, Got: %h", expected, result);
         $display("    Difference: %h", result - expected);
@@ -161,9 +161,9 @@ module tb_lse_mult_unified;
     $display("=============================================================================");
     
     if (fail_count == 0) begin
-      $display("🎉 ALL TESTS PASSED! LSE Mult module is functioning correctly.");
+      $display(" ALL TESTS PASSED! LSE Mult module is functioning correctly.");
     end else begin
-      $display("⚠️  Some tests failed. Please review the implementation.");
+      $display(" Some tests failed. Please review the implementation.");
     end
     
     $display("=============================================================================");

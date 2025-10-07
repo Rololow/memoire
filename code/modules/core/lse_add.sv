@@ -1,14 +1,16 @@
 // =============================================================================
-// LSE Addition Module (Width-Adaptive)
-// Description: LSE addition with automatic width adaptation
-// Version: Unified standard interface - Width-adaptive implementation
+// LSE Addition Module (LSE-PE Implementation)
+// Description: Implements Algorithm 1 from "LSE-PE: Hardware Efficient for 
+//              Tractable Probabilistic Reasoning" (Yao et al., NeurIPS 2024)
+// Version: Algorithm-compliant implementation with CLUT support
 // Compatible: Icarus Verilog / Standard Verilog
 // =============================================================================
 
 module lse_add #(
     parameter WIDTH = 24,
     parameter LUT_SIZE = 1024,
-    parameter LUT_PRECISION = 10
+    parameter LUT_PRECISION = 10,
+    parameter FRAC_BITS = 10  // Number of fractional bits for CLUT addressing
 )(
     input  logic clk,
     input  logic rst,
@@ -22,11 +24,11 @@ module lse_add #(
 );
 
     // =========================================================================
-    // Width-Adaptive Parameters
+    // Parameters for LSE-PE Algorithm
     // =========================================================================
     localparam NEG_INF_VAL = {1'b1, {(WIDTH-1){1'b0}}}; // MSB=1, others=0
-    localparam SMALL_CORRECTION = 24'h010000; // Fixed correction for test compatibility
-    localparam DIFF_THRESHOLD = -(2**(WIDTH-4)); // Adaptive threshold
+    localparam INT_BITS = WIDTH - FRAC_BITS;  // Integer bits
+    localparam CLUT_ADDR_BITS = 4; // 16-entry CLUT (2^4)
     
     // =========================================================================
     // Internal Signals for Synchronous Processing
@@ -39,7 +41,7 @@ module lse_add #(
     always_comb begin : lse_add_comb
         
         case (pe_mode)
-            2'b00: begin // 24-bit LSE mode (log-sum-exp)
+            2'b00: begin // 24-bit LSE mode implementing Algorithm 1
                 // Check for special values (negative infinity)
                 if (operand_a == NEG_INF_VAL || operand_b == NEG_INF_VAL) begin
                     if (operand_a == NEG_INF_VAL && operand_b == NEG_INF_VAL) begin
@@ -50,42 +52,76 @@ module lse_add #(
                         result_next = operand_a;    // x + (-inf) = x
                     end
                 end else begin
-                    // LSE approximation: log(exp(a) + exp(b)) ≈ max(a,b) + log(1 + exp(-|a-b|))
-                    logic [WIDTH-1:0] larger, smaller, correction;
-                    logic signed [WIDTH:0] diff; // One bit wider for proper signed arithmetic
+                    // =============================================================
+                    // Algorithm 1: LSE-PE Implementation
+                    // =============================================================
                     
+                    // Declare all variables first (SystemVerilog requirement)
+                    logic [WIDTH-1:0] x, y;
+                    logic signed [WIDTH:0] sub;
+                    logic signed [INT_BITS-1:0] I_yx;
+                    logic [FRAC_BITS-1:0] F_yx;
+                    logic [WIDTH-1:0] one_plus_frac;
+                    logic [WIDTH-1:0] f_tilde;
+                    logic [5:0] shift_amount;
+                    logic [CLUT_ADDR_BITS-1:0] clut_addr;
+                    logic [LUT_PRECISION-1:0] clut_correction;
+                    logic [$clog2(LUT_SIZE)-1:0] scaled_addr;
+                    logic [WIDTH:0] temp_result;
+                    
+                    // Step 1-2: Determine x (larger) and y (smaller), assume x ≥ y
                     if (operand_a >= operand_b) begin
-                        larger = operand_a;
-                        smaller = operand_b;
+                        x = operand_a;
+                        y = operand_b;
                     end else begin
-                        larger = operand_b;
-                        smaller = operand_a;
+                        x = operand_b;
+                        y = operand_a;
                     end
                     
-                    diff = $signed({1'b0, smaller}) - $signed({1'b0, larger}); // Always ≤ 0
+                    // Step 3: Sub ← y - x (always ≤ 0)
+                    sub = $signed({1'b0, y}) - $signed({1'b0, x});
                     
-                    // Special cases for zero operands
-                    if (operand_a == 24'h000000 || operand_b == 24'h000000) begin
-                        correction = 24'h000000;  // No correction for zero cases
-                    end 
-                    // Equal values case (like 7fffff + 7fffff)
-                    else if (operand_a == operand_b) begin
-                        correction = 24'h000001;  // Minimal correction for equal values
-                    end
-                    // LSE approximation: add correction based on difference magnitude
-                    else if (diff >= -24'h100000) begin  // Close values get full correction
-                        correction = SMALL_CORRECTION;
-                    end else if (diff >= -24'h200000) begin  // Medium distance gets scaled correction
-                        correction = SMALL_CORRECTION * 3;  // 0x30000 for test compatibility
-                    end else begin  // Far values get minimal correction
-                        correction = 24'h000000;
-                    end
+                    // Step 4: Extract I(y-x) (integer part) and F(y-x) (fractional part)
+                    // Format: [INT_BITS].[FRAC_BITS]
+                    I_yx = sub[WIDTH:FRAC_BITS];       // Upper bits = integer
+                    F_yx = sub[FRAC_BITS-1:0];         // Lower bits = fractional
                     
-                    // Apply correction with overflow protection
-                    if (larger <= ({{(WIDTH-4){1'b1}}, 4'b0000}) - correction) begin
-                        result_next = larger + correction;
+                    // Step 5-6: Two-stage approximation
+                    // ˜f(y-x) ← (1 + F(y-x)) ≫ (-I(y-x))
+                    
+                    // Compute (1 + F(y-x))
+                    // "1" in fixed-point is 2^FRAC_BITS
+                    one_plus_frac = {{(INT_BITS-1){1'b0}}, 1'b1, F_yx};
+                    
+                    // Right shift by (-I(y-x))
+                    // Since I(y-x) is negative, -I(y-x) is positive
+                    shift_amount = (-I_yx < 6'd24) ? -I_yx[5:0] : 6'd24; // Cap at 24 bits
+                    
+                    f_tilde = one_plus_frac >> shift_amount;
+                    
+                    // Step 7: Error correction using CLUT
+                    // CLUT address: Use top CLUT_ADDR_BITS of f_tilde's fractional part
+                    
+                    // Extract bits for CLUT addressing from fractional part
+                    clut_addr = f_tilde[FRAC_BITS-1:FRAC_BITS-CLUT_ADDR_BITS];
+                    
+                    // Read correction from CLUT (map to actual LUT_SIZE)
+                    if (CLUT_ADDR_BITS < $clog2(LUT_SIZE)) begin
+                        // Scale address to LUT_SIZE
+                        scaled_addr = clut_addr << ($clog2(LUT_SIZE) - CLUT_ADDR_BITS);
+                        clut_correction = lut_table[scaled_addr];
                     end else begin
-                        result_next = {WIDTH{1'b1}}; // Saturate to maximum value
+                        clut_correction = lut_table[clut_addr];
+                    end
+                    
+                    // Step 8: return x + ˜f(y-x) + CLUT(˜f(y-x))
+                    temp_result = x + f_tilde + {{(WIDTH-LUT_PRECISION){1'b0}}, clut_correction};
+                    
+                    // Overflow protection: saturate to maximum value
+                    if (temp_result[WIDTH]) begin  // Overflow detected
+                        result_next = {WIDTH{1'b1}};
+                    end else begin
+                        result_next = temp_result[WIDTH-1:0];
                     end
                 end
             end
@@ -137,5 +173,44 @@ module lse_add #(
             valid_out <= 1'b0;
         end
     end
+    
+    // =========================================================================
+    // Verification and Debug Support
+    // =========================================================================
+    `ifdef DEBUG_LSE_ADD
+        always_ff @(posedge clk) begin
+            if (enable && pe_mode == 2'b00 && 
+                operand_a != NEG_INF_VAL && operand_b != NEG_INF_VAL) begin
+                $display("[LSE_ADD] Time=%0t: a=%h, b=%h, result=%h", 
+                         $time, operand_a, operand_b, result_next);
+            end
+        end
+    `endif
+    
+    `ifdef ASSERTIONS_ON
+        // Verify that result is monotonic: LSE(a,b) ≥ max(a,b)
+        property p_lse_monotonic;
+            @(posedge clk) disable iff (rst)
+            (enable && pe_mode == 2'b00 && valid_out &&
+             operand_a != NEG_INF_VAL && operand_b != NEG_INF_VAL) 
+            |-> (result >= operand_a) && (result >= operand_b);
+        endproperty
+        assert property (p_lse_monotonic) 
+            else $error("LSE result %h not monotonic for inputs a=%h, b=%h", 
+                        result, operand_a, operand_b);
+        
+        // Verify commutative property: LSE(a,b) = LSE(b,a)
+        property p_lse_commutative;
+            logic [WIDTH-1:0] a_saved, b_saved, result_saved;
+            @(posedge clk) disable iff (rst)
+            (enable && pe_mode == 2'b00, 
+             a_saved = operand_a, b_saved = operand_b, result_saved = result) 
+            ##1 (enable && pe_mode == 2'b00 && 
+                 operand_a == b_saved && operand_b == a_saved)
+            |-> (result == result_saved);
+        endproperty
+        // Note: This assertion is informational and may not fire in typical operation
+        
+    `endif
     
 endmodule : lse_add

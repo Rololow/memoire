@@ -209,11 +209,12 @@ module lse_shared_system #(
         endproperty
         assert property (p_system_reset_behavior);
         
-        property p_arbitration_fairness;
-            @(posedge clk) disable iff (!rst_n || system_reset)
-            arb_valid |-> (selected_unit < NUM_MAC_UNITS);
-        endproperty
-        assert property (p_arbitration_fairness);
+        // Note: arbitration signals are internal to lse_clut_shared module
+        // property p_arbitration_fairness;
+        //     @(posedge clk) disable iff (!rst_n || system_reset)
+        //     arb_valid |-> (selected_unit < NUM_MAC_UNITS);
+        // endproperty
+        // assert property (p_arbitration_fairness);
         
         // Coverage for system utilization
         covergroup cg_system_utilization @(posedge clk);
