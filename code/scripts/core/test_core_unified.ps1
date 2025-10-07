@@ -19,15 +19,15 @@ Write-Host "====================================================================
 # =============================================================================
 # Configuration
 # =============================================================================
-$PROJECT_ROOT = "C:\Users\waric\Documents\mémoire\code"
+$PROJECT_ROOT = "C:\Users\waric\Documents\memoire\code"
 $WORK_DIR = "$PROJECT_ROOT\work"
 $OUTPUT_DIR = "$PROJECT_ROOT\simulation_output"
 $MODULES_DIR = "$PROJECT_ROOT\modules\core"
 $TESTBENCHES_DIR = "$PROJECT_ROOT\testbenches\core"
 
-# Icarus Verilog paths
-$IVERILOG = "C:\iverilog\bin\iverilog.exe"
-$VVP = "C:\iverilog\bin\vvp.exe"
+# ModelSim tools
+$VLOG = "vlog"
+$VSIM = "vsim"
 
 # Test configuration
 $TIMEOUT_SECONDS = 30
@@ -93,21 +93,18 @@ function Write-TestResult {
     Write-Host "[$timestamp] $Status - $Message" -ForegroundColor $Color
 }
 
-function Test-IcariusVerilogInstallation {
-    Write-Host "`n🔍 Checking Icarus Verilog installation..." -ForegroundColor Green
+function Test-ModelSimInstallation {
+    Write-Host "`n🔍 Checking ModelSim installation..." -ForegroundColor Green
     
-    if (!(Test-Path $IVERILOG)) {
-        Write-Host "❌ ERROR: Icarus Verilog not found at $IVERILOG" -ForegroundColor Red
+    try {
+        $null = Get-Command $VLOG -ErrorAction Stop
+        $null = Get-Command $VSIM -ErrorAction Stop
+        Write-Host "✅ ModelSim found and accessible" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Host "❌ ERROR: ModelSim not found or not in PATH" -ForegroundColor Red
         return $false
     }
-    
-    if (!(Test-Path $VVP)) {
-        Write-Host "❌ ERROR: VVP not found at $VVP" -ForegroundColor Red
-        return $false
-    }
-    
-    Write-Host "✅ Icarus Verilog installation verified" -ForegroundColor Green
-    return $true
 }
 
 function Initialize-TestEnvironment {
@@ -142,7 +139,6 @@ function Test-CoreModule {
     
     $module_path = Join-Path $MODULES_DIR $ModuleConfig.module_file
     $testbench_path = Join-Path $TESTBENCHES_DIR $ModuleConfig.testbench_file
-    $output_file = "test_$ModuleName.out"
     $vcd_file = "$ModuleName.vcd"
     
     # Verify files exist
@@ -158,20 +154,20 @@ function Test-CoreModule {
     
     Write-TestResult "INFO" "Compiling module and testbench..." "Cyan"
     
-    # Compilation with dependencies
-    $compile_args = @(
-        "-g2012"                    # SystemVerilog 2012
-        "-o", $output_file          # Output executable
-        $testbench_path             # Testbench file
-        $module_path                # Module file
-    )
+    # Create work library if it doesn't exist
+    if (!(Test-Path "work")) {
+        $null = & vlib work 2>$null
+    }
+    
+    # Prepare compilation files list
+    $compile_files = @($module_path, $testbench_path)
     
     # Add dependencies if specified
     if ($ModuleConfig.ContainsKey("dependencies")) {
         foreach ($dep in $ModuleConfig.dependencies) {
             $dep_path = Join-Path $MODULES_DIR $dep
             if (Test-Path $dep_path) {
-                $compile_args += $dep_path
+                $compile_files += $dep_path
                 Write-TestResult "INFO" "Including dependency: $dep" "Yellow"
             } else {
                 Write-TestResult "WARNING" "Dependency not found: $dep_path" "Yellow"
@@ -180,7 +176,7 @@ function Test-CoreModule {
     }
     
     try {
-        $compile_process = Start-Process -FilePath $IVERILOG -ArgumentList $compile_args -Wait -NoNewWindow -PassThru -RedirectStandardError "compile_error.log" -RedirectStandardOutput "compile_output.log"
+        $compile_process = Start-Process -FilePath $VLOG -ArgumentList @("-sv", "-work", "work") + $compile_files -Wait -NoNewWindow -PassThru -RedirectStandardError "compile_error.log" -RedirectStandardOutput "compile_output.log"
         
         if ($compile_process.ExitCode -ne 0) {
             $error_content = Get-Content "compile_error.log" -ErrorAction SilentlyContinue
@@ -203,7 +199,16 @@ function Test-CoreModule {
     Write-TestResult "INFO" "Running simulation..." "Cyan"
     
     try {
-        $sim_process = Start-Process -FilePath $VVP -ArgumentList $output_file -Wait -NoNewWindow -PassThru -RedirectStandardError "sim_error.log" -RedirectStandardOutput "sim_output.log"
+        $testbench_name = [System.IO.Path]::GetFileNameWithoutExtension($ModuleConfig.testbench_file)
+        
+        # Create temporary do file
+        $do_content = @"
+run -all
+quit
+"@
+        $do_content | Out-File -FilePath "run_sim.do" -Encoding ASCII
+        
+        $sim_process = Start-Process -FilePath $VSIM -ArgumentList @("-c", "work.$testbench_name", "-do", "run_sim.do") -Wait -NoNewWindow -PassThru -RedirectStandardError "sim_error.log" -RedirectStandardOutput "sim_output.log"
         
         if ($sim_process.ExitCode -ne 0) {
             $error_content = Get-Content "sim_error.log" -ErrorAction SilentlyContinue
@@ -270,7 +275,7 @@ function Start-CoreModuleTests {
     Write-Host "   Stop on Error: $StopOnError" -ForegroundColor Gray
     
     # Check prerequisites
-    if (!(Test-IcariusVerilogInstallation)) {
+    if (!(Test-ModelSimInstallation)) {
         Write-Host "`n❌ Prerequisites not met. Exiting." -ForegroundColor Red
         exit 1
     }

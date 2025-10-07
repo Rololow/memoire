@@ -1,4 +1,22 @@
-# LSE Add Module Project
+# LSE Add Modu├── 📁 scripts/                    # Scripts d'automatisation
+│   ├── core/           ### ModelSim ne s'ouvre pas
+```powershell
+# Vérifier ModelSim
+vsim -version
+vlog -version
+
+# Lancement manuel si nécessaire
+.\launch_modelsim.ps1 register simple
+```  # Scripts pour modules principaux
+│   └── test_*.ps1                 # Scripts de test automatisés
+├── 📁 modelsim_configs/           # Configurations ModelSim pour chronogrammes
+│   ├── wave_register_simple.do    # Configuration simple (recommandée)
+│   ├── wave_*_advanced.do         # Configurations avancées (debug)
+│   └── wave_*_full.do             # Configurations complètes
+├── 📁 simulation_output/          # Fichiers générés par la simulation
+│   ├── *.vcd                      # Chronogrammes VCD (compatibilité)
+│   └── *.wlf                      # Fichiers ModelSim natifs
+├── 📁 work/                       # Bibliothèque ModelSim
 
 Un projet professionnel de simulation SystemVerilog/Verilog avec module d'addition LSE (Log-Sum-Exp).
 
@@ -48,13 +66,12 @@ C:\iverilog\bin\iverilog.exe -g2012 -o simulation_output\tb_simple.vvp -s tb_lse
 C:\iverilog\bin\vvp.exe simulation_output\tb_simple.vvp
 
 # 2. Visualisation
-scripts\launch_gtkwave.ps1 simple
+.\launch_modelsim.ps1 register simple
 ```
 
 ## 🔧 Outils Requis
 
-- **Icarus Verilog 12.0+** : Simulateur open source
-- **GTKWave 3.3+** : Visualiseur de chronogrammes (inclus avec Icarus)
+- **ModelSim/QuestaSim** : Simulateur professionnel avec interface graphique
 - **PowerShell 5.0+** : Pour les scripts d'automatisation
 
 ## 📊 Configurations de Visualisation
@@ -110,9 +127,9 @@ C:\iverilog\gtkwave\bin\gtkwave.exe simulation_output\lse_add_waveform.vcd
 
 - ✅ Structure de projet professionnelle
 - ✅ Scripts d'automatisation PowerShell
-- ✅ Configurations GTKWave pré-définies
-- ✅ Simulation automatisée (Icarus Verilog)
-- ✅ Visualisation intégrée (GTKWave)
+- ✅ Configurations ModelSim pré-définies
+- ✅ Simulation automatisée (ModelSim)
+- ✅ Visualisation intégrée (ModelSim GUI)
 - ✅ Support multi-mode (24-bit/6-bit)
 - ✅ Gestion des cas spéciaux
 - ✅ Documentation complète
@@ -124,5 +141,5 @@ C:\iverilog\gtkwave\bin\gtkwave.exe simulation_output\lse_add_waveform.vcd
 🔗 **Liens rapides :**
 - [📖 Documentation détaillée](docs/README_detailed.md)
 - [🔧 Scripts](scripts/)
-- [⚙️ Configurations GTKWave](gtkwave_configs/)
+- [⚙️ Configurations ModelSim](code/modelsim_configs/)
 - [📊 Résultats de simulation](simulation_output/)

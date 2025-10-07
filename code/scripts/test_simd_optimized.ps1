@@ -10,7 +10,7 @@ Write-Host "    LSE SIMD Optimized Test Suite (100% Python-Verified)" -Foregroun
 Write-Host "==================================================================" -ForegroundColor Cyan
 
 # Project configuration
-$PROJECT_ROOT = "C:\Users\waric\Documents\mémoire\code"
+$PROJECT_ROOT = "C:\Users\waric\Documents\memoire\code"
 $WORK_DIR = "$PROJECT_ROOT\work"
 
 # Ensure work directory exists

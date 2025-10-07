@@ -19,13 +19,13 @@ if (!$Quiet) {
 # =============================================================================
 # Configuration
 # =============================================================================
-$PROJECT_ROOT = "C:\Users\waric\Documents\mémoire\code"
+$PROJECT_ROOT = "C:\Users\waric\Documents\memoire\code"
 $WORK_DIR = "$PROJECT_ROOT\work"
 $MODULES_DIR = "$PROJECT_ROOT\modules\core"
 $TESTBENCHES_DIR = "$PROJECT_ROOT\testbenches\core"
 
-$IVERILOG = "C:\iverilog\bin\iverilog.exe"
-$VVP = "C:\iverilog\bin\vvp.exe"
+$VLOG = "vlog"
+$VSIM = "vsim"
 
 # Quick test modules (most critical ones)
 $QUICK_TESTS = @{
@@ -50,15 +50,29 @@ function Test-ModuleQuick {
         return @{ success = $false; error = "Files missing" }
     }
     
-    # Silent compilation
-    $null = Start-Process -FilePath $IVERILOG -ArgumentList @("-g2012", "-o", $output_file, $testbench_path, $module_path) -Wait -NoNewWindow -PassThru -RedirectStandardError "compile_error.tmp" -RedirectStandardOutput "compile_output.tmp"
+    # Create work library if it doesn't exist
+    if (!(Test-Path "work")) {
+        $null = & vlib work 2>$null
+    }
     
-    if (!(Test-Path $output_file)) {
+    # Compilation with ModelSim
+    $comp_process = Start-Process -FilePath $VLOG -ArgumentList @("-sv", "-work", "work", $module_path, $testbench_path) -Wait -NoNewWindow -PassThru -RedirectStandardError "compile_error.tmp" -RedirectStandardOutput "compile_output.tmp"
+    
+    if ($comp_process.ExitCode -ne 0) {
         return @{ success = $false; error = "Compilation failed" }
     }
     
-    # Silent simulation
-    $sim_process = Start-Process -FilePath $VVP -ArgumentList $output_file -Wait -NoNewWindow -PassThru -RedirectStandardError "sim_error.tmp" -RedirectStandardOutput "quick_output.log"
+    # Silent simulation with ModelSim
+    $testbench_name = [System.IO.Path]::GetFileNameWithoutExtension($TestbenchFile)
+    
+    # Create temporary do file
+    $do_content = @"
+run -all
+quit
+"@
+    $do_content | Out-File -FilePath "run_sim.do" -Encoding ASCII
+    
+    $sim_process = Start-Process -FilePath $VSIM -ArgumentList @("-c", "work.$testbench_name", "-do", "run_sim.do") -Wait -NoNewWindow -PassThru -RedirectStandardError "sim_error.tmp" -RedirectStandardOutput "quick_output.log"
     
     if ($sim_process.ExitCode -ne 0) {
         return @{ success = $false; error = "Simulation failed" }
@@ -68,11 +82,12 @@ function Test-ModuleQuick {
     $output = Get-Content "quick_output.log" -ErrorAction SilentlyContinue
     $all_passed = $output | Where-Object { $_ -match "ALL TESTS PASSED" }
     
-    Remove-Item $output_file -ErrorAction SilentlyContinue
     Remove-Item "quick_output.log" -ErrorAction SilentlyContinue
     Remove-Item "compile_error.tmp" -ErrorAction SilentlyContinue
     Remove-Item "compile_output.tmp" -ErrorAction SilentlyContinue
     Remove-Item "sim_error.tmp" -ErrorAction SilentlyContinue
+    Remove-Item "transcript" -ErrorAction SilentlyContinue
+    Remove-Item "run_sim.do" -ErrorAction SilentlyContinue
     
     return @{ success = $true; all_passed = ($all_passed -ne $null) }
 }
@@ -85,8 +100,11 @@ if (!(Test-Path $WORK_DIR)) { New-Item -ItemType Directory -Path $WORK_DIR -Forc
 Set-Location $WORK_DIR
 
 # Quick checks
-if (!(Test-Path $IVERILOG)) {
-    Write-Host "❌ Icarus Verilog not found" -ForegroundColor Red
+try {
+    $null = Get-Command $VLOG -ErrorAction Stop
+    $null = Get-Command $VSIM -ErrorAction Stop
+} catch {
+    Write-Host "❌ ModelSim not found or not in PATH" -ForegroundColor Red
     exit 1
 }
 

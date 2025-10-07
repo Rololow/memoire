@@ -17,7 +17,7 @@ Write-Host "================================================================" -F
 # =============================================================================
 # Configuration
 # =============================================================================
-$PROJECT_ROOT = "C:\Users\waric\Documents\mémoire\code"
+$PROJECT_ROOT = "C:\Users\waric\Documents\memoire\code"
 $WORK_DIR = "$PROJECT_ROOT\work"
 $OUTPUT_DIR = "$PROJECT_ROOT\simulation_output"
 

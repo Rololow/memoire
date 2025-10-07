@@ -1,5 +1,5 @@
 # =============================================================================
-# .gitignore pour projet SystemVerilog/Verilog avec Icarus Verilog et GTKWave
+# .gitignore pour projet SystemVerilog/Verilog avec ModelSim/QuestaSim
 # =============================================================================
 
 # Fichiers de sortie de simulation
@@ -78,8 +78,9 @@ tmp/
 # Logs PowerShell
 *.ps1.log
 
-# Sauvegardes automatiques GTKWave
-*.gtkw.bak
+# Fichiers de configuration ModelSim générés
+*.do.bak
+modelsim_configs/auto_*
 
 # Exclure mais garder la structure des dossiers
 !simulation_output/.gitkeep

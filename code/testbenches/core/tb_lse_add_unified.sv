@@ -27,11 +27,15 @@ module tb_lse_add_unified;
   // =========================================================================
   // DUT Interface Signals (standardized names)
   // =========================================================================
+  reg clk;
+  reg rst;
+  reg enable;
   reg [WIDTH-1:0] operand_a;
   reg [WIDTH-1:0] operand_b;
   reg [LUT_PRECISION-1:0] lut_table [0:LUT_SIZE-1];
   reg [1:0] pe_mode;
   wire [WIDTH-1:0] result;
+  wire valid_out;
   
   // =========================================================================
   // DUT Instantiation (unified module)
@@ -41,11 +45,15 @@ module tb_lse_add_unified;
     .LUT_SIZE(LUT_SIZE),
     .LUT_PRECISION(LUT_PRECISION)
   ) dut (
+    .clk(clk),
+    .rst(rst),
+    .enable(enable),
     .operand_a(operand_a),
     .operand_b(operand_b),
     .lut_table(lut_table),
     .pe_mode(pe_mode),
-    .result(result)
+    .result(result),
+    .valid_out(valid_out)
   );
   
   // =========================================================================
@@ -61,13 +69,16 @@ module tb_lse_add_unified;
     begin
       test_count = test_count + 1;
       
-      // Apply inputs
+      // Apply inputs at positive clock edge
+      @(posedge clk);
       operand_a = test_a;
       operand_b = test_b;
       pe_mode = test_mode;
       
-      // Wait for combinational propagation
-      #1;
+      // Wait for pipeline to process and valid_out to assert
+      @(posedge clk);
+      wait(valid_out);
+      #1; // Small delay for signal stabilization
       
       // Check result
       if (result == expected) begin
@@ -103,6 +114,14 @@ module tb_lse_add_unified;
   endtask
   
   // =========================================================================
+  // Clock Generation
+  // =========================================================================
+  initial begin
+    clk = 0;
+    forever #(CLK_PERIOD/2) clk = ~clk;
+  end
+  
+  // =========================================================================
   // Main Test Sequence
   // =========================================================================
   initial begin
@@ -110,13 +129,20 @@ module tb_lse_add_unified;
     $display("              Unified LSE Add Testbench Started");
     $display("=============================================================================");
     
-    // Initialize LUT
-    initialize_lut();
-    
-    // Initialize test variables
+    // Initialize control signals
+    rst = 1;
+    enable = 0;
     operand_a = 0;
     operand_b = 0;
     pe_mode = 0;
+    
+    // Initialize LUT
+    initialize_lut();
+    
+    // Release reset and enable module
+    #(CLK_PERIOD * 2);
+    rst = 0;
+    enable = 1;
     
     // Wait for initial stabilization
     #(CLK_PERIOD);
