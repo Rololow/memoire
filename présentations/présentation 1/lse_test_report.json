@@ -1,15 +1,15 @@
 {
-  "timestamp": "2025-10-07T21:26:38.110866",
+  "timestamp": "2025-10-08T17:40:09.797504",
   "summary": {
     "total_modules": 1,
     "passed_modules": 0,
     "partial_modules": 1,
     "failed_modules": 0,
-    "total_tests": 47,
-    "total_passed": 40,
-    "total_failed": 7,
-    "global_success_rate": 85.1063829787234,
-    "total_duration": 1.504168
+    "total_tests": 44,
+    "total_passed": 39,
+    "total_failed": 5,
+    "global_success_rate": 88.63636363636364,
+    "total_duration": 2.147986
   },
   "modules": [
     {
@@ -17,22 +17,234 @@
       "name": "LSE Add (Algorithm 1 Implementation)",
       "description": "Addition LSE avec impl\u00e9mentation Algorithm 1 (LSE-PE NeurIPS 2024)",
       "status": "PARTIAL",
-      "total_tests": 47,
-      "passed_tests": 40,
-      "failed_tests": 7,
-      "success_rate": 85.1063829787234,
-      "duration": 1.504168,
+      "total_tests": 44,
+      "passed_tests": 39,
+      "failed_tests": 5,
+      "success_rate": 88.63636363636364,
+      "duration": 2.147986,
       "details": [
-        "#  PASS - close_delta_0p5",
-        "#  PASS - close_delta_1",
-        "#  PASS - equal_5",
-        "#  PASS - four_vs_zero",
-        "#  FAIL - fractional_0p25",
-        "#  PASS - fractional_1p5",
-        "#  PASS - fractional_2p75",
-        "#  PASS - large_delta_18",
-        "#  PASS - medium_delta_4",
-        "#  PASS - medium_delta_5"
+        "PASS - close_delta_0p5",
+        "PASS - close_delta_1",
+        "PASS - equal_5",
+        "PASS - four_vs_zero",
+        "FAIL - fractional_0p25",
+        "PASS - fractional_1p5",
+        "PASS - fractional_2p75",
+        "PASS - large_delta_18",
+        "PASS - medium_delta_4",
+        "PASS - medium_delta_5"
+      ],
+      "errors": [
+        {
+          "label": "close_delta_0p5",
+          "status": "PASS",
+          "error": -6.9e-05
+        },
+        {
+          "label": "close_delta_1",
+          "status": "PASS",
+          "error": -0.000978
+        },
+        {
+          "label": "equal_5",
+          "status": "PASS",
+          "error": 0.0
+        },
+        {
+          "label": "four_vs_zero",
+          "status": "PASS",
+          "error": -0.000549
+        },
+        {
+          "label": "fractional_0p25",
+          "status": "FAIL",
+          "error": 0.29492
+        },
+        {
+          "label": "fractional_1p5",
+          "status": "PASS",
+          "error": -0.000228
+        },
+        {
+          "label": "fractional_2p75",
+          "status": "PASS",
+          "error": 0.000142
+        },
+        {
+          "label": "large_delta_18",
+          "status": "PASS",
+          "error": -6e-06
+        },
+        {
+          "label": "medium_delta_4",
+          "status": "PASS",
+          "error": -0.000549
+        },
+        {
+          "label": "medium_delta_5",
+          "status": "PASS",
+          "error": 0.01127
+        },
+        {
+          "label": "random_000",
+          "status": "PASS",
+          "error": 0.003022
+        },
+        {
+          "label": "random_001",
+          "status": "PASS",
+          "error": -0.001871
+        },
+        {
+          "label": "random_002",
+          "status": "PASS",
+          "error": -0.000258
+        },
+        {
+          "label": "random_003",
+          "status": "PASS",
+          "error": -0.006598
+        },
+        {
+          "label": "random_004",
+          "status": "PASS",
+          "error": 0.005308
+        },
+        {
+          "label": "random_005",
+          "status": "PASS",
+          "error": 0.001182
+        },
+        {
+          "label": "random_006",
+          "status": "PASS",
+          "error": 0.00222
+        },
+        {
+          "label": "random_007",
+          "status": "PASS",
+          "error": -0.006906
+        },
+        {
+          "label": "random_008",
+          "status": "PASS",
+          "error": -0.004131
+        },
+        {
+          "label": "random_009",
+          "status": "PASS",
+          "error": -0.005201
+        },
+        {
+          "label": "random_010",
+          "status": "PASS",
+          "error": -0.000173
+        },
+        {
+          "label": "random_011",
+          "status": "PASS",
+          "error": 0.012489
+        },
+        {
+          "label": "random_012",
+          "status": "PASS",
+          "error": -0.003953
+        },
+        {
+          "label": "random_013",
+          "status": "PASS",
+          "error": 0.002558
+        },
+        {
+          "label": "random_014",
+          "status": "PASS",
+          "error": -0.003566
+        },
+        {
+          "label": "random_015",
+          "status": "PASS",
+          "error": -0.002182
+        },
+        {
+          "label": "zero_vs_4",
+          "status": "PASS",
+          "error": -0.000549
+        },
+        {
+          "label": "zero_zero",
+          "status": "PASS",
+          "error": 0.0
+        },
+        {
+          "label": "NEG_INF + Normal = Normal",
+          "status": "PASS",
+          "error": 0.0
+        },
+        {
+          "label": "Normal + NEG_INF = Normal",
+          "status": "PASS",
+          "error": 0.0
+        },
+        {
+          "label": "LSE(5.0, 4.5) \ufffd?? 5.585",
+          "status": "FAIL",
+          "error": -6.9e-05
+        },
+        {
+          "label": "LSE(10.0, 10.0) = 11.0",
+          "status": "PASS",
+          "error": 0.0
+        },
+        {
+          "label": "LSE(3.0, 2.0) \ufffd?? 3.585",
+          "status": "PASS",
+          "error": -0.000978
+        },
+        {
+          "label": "LSE(10.0, 5.0) \ufffd?? 10.044",
+          "status": "PASS",
+          "error": 0.01127
+        },
+        {
+          "label": "LSE(8.0, 4.0) \ufffd?? 8.087",
+          "status": "PASS",
+          "error": -0.000549
+        },
+        {
+          "label": "LSE(20.0, 2.0) \ufffd?? 20.0",
+          "status": "PASS",
+          "error": -6e-06
+        },
+        {
+          "label": "LSE(15.0, 5.0) \ufffd?? 15.0",
+          "status": "PASS",
+          "error": -0.000432
+        },
+        {
+          "label": "LSE(0.0, 4.0)",
+          "status": "FAIL",
+          "error": -0.000549
+        },
+        {
+          "label": "LSE(4.0, 0.0)",
+          "status": "FAIL",
+          "error": -0.000549
+        },
+        {
+          "label": "LSE(0.0, 0.0)",
+          "status": "FAIL",
+          "error": 0.0
+        },
+        {
+          "label": "Large values near overflow",
+          "status": "PASS",
+          "error": 0.000488
+        },
+        {
+          "label": "Max value + small value",
+          "status": "PASS",
+          "error": 0.0
+        }
       ]
     }
   ]

@@ -4,7 +4,7 @@ Implémentation matérielle de la fonction Log-Sum-Exp destinée au raisonnement
 
 ## Vue d’ensemble
 
-- **Format de données** : 24 bits (14 entiers / 10 fractionnaires) avec variantes SIMD 4×6 bits.
+-- **Format de données** : 24 bits (14 entiers / 10 fractionnaires). Note: les variantes SIMD 4×6 bits ont été retirées du code actif et archivées.
 - **Modules cœur** : addition LSE (Algorithm 1), multiplication log-space, accumulateur LSE, MAC log-space et CLUT partagée.
 - **Système partagé** : quatre MACs parallèles consommant une seule CLUT (arbitrage round-robin).
 - **Testbenches** : bancs auto‑vérifiants pour chaque bloc + un banc système complet.
@@ -68,8 +68,8 @@ code/
 
 ## Modules SystemVerilog
 
-- `core/lse_add.sv` – mise en œuvre matérielle de l’Algorithm 1 (delta, CLUT, SIMD).
-- `core/lse_mult.sv` – addition en espace log avec support SIMD.
+-- `core/lse_add.sv` – mise en œuvre matérielle de l’Algorithm 1 (delta, CLUT).
+-- `core/lse_mult.sv` – addition en espace log (mode scalaire 24-bit). SIMD support retiré.
 - `core/lse_acc.sv` – accumulateur LSE (16 bits) avec correctifs graduels.
 - `core/lse_log_mac.sv` & `core/lse_pe_with_mux.sv` – unité MAC complète prête à l’intégration.
 - `lut/lse_clut_shared.sv` – ROM de correction (64×10 bits) avec arbitrage 4 voies.

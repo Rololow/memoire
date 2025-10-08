@@ -8,6 +8,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{tikz}
+\usetikzlibrary{shapes.geometric,positioning,arrows.meta}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
@@ -266,7 +267,7 @@ $\rightarrow$ Seulement des additions et bit-shifts!
     \centering
     \includegraphics[width=\linewidth]{présentation 1/Capture d’écran 2025-10-05 185036.png}
     \caption{Error of $\tilde{f}_{(y−x)}$ under different approximations}
-    \label{fig:enter-label}
+   \label{fig:tilde-error}
 \end{figure}
 \end{columns}
 
@@ -308,75 +309,9 @@ $\rightarrow$ Seulement des additions et bit-shifts!
     \caption{Implementation of 64 parallel MAC units using
 LSE-PE as logarithmic adders (LSE-PE), fixed-point adder as
 logarithmic multipliers (MULT.).}
-    \label{fig:enter-label}
+   \label{fig:lse-mac-implementation}
 \end{figure}
     
-\end{frame}
-
-\section{Implémentation Actuelle}
-
-\begin{frame}{Récapitulatif de l'Implémentation}
-\begin{block}{Architecture Complète Implémentée ✅}
-\textbf{Système LSE Shared System} - 100\% fonctionnel (5/5 tests)
-\begin{itemize}
-\item 4 unités MAC parallèles avec CLUT partagée
-\item Pipeline complet avec arbitration
-\item Gestion des opérations parallèles et séquentielles
-\item Mode bypass pour flexibilité
-\end{itemize}
-\end{block}
-
-\begin{block}{Modules Core Validés}
-\begin{itemize}
-\item \textbf{LSE Add} (100\% - 12/12 tests): Addition log-space 24-bit et SIMD 6-bit
-\item \textbf{LSE Mult} (100\% - 14/14 tests): Multiplication log-space avec SIMD
-\item \textbf{LSE Accumulator} (77.8\% - 14/18 tests): Accumulation 16-bit optimisée
-\item \textbf{LSE Log MAC} (100\%): Unité MAC complète avec gestion accumulateur
-\end{itemize}
-\end{block}
-\end{frame}
-
-\begin{frame}{Architecture du Système Implémenté}
-\begin{columns}
-\column{0.5\textwidth}
-\textbf{Composants Principaux:}
-\begin{itemize}
-\item \textcolor{green}{✅ lse\_add.sv} \\
-  \small{Addition LSE dual-mode}
-\item \textcolor{green}{✅ lse\_mult.sv} \\
-  \small{Multiplication log-space}
-\item \textcolor{green}{✅ lse\_log\_mac.sv} \\
-  \small{MAC avec accumulation}
-\item \textcolor{green}{✅ lse\_clut\_shared.sv} \\
-  \small{CLUT partagée optimisée}
-\item \textcolor{green}{✅ lse\_pe\_with\_mux.sv} \\
-  \small{PE avec multiplexeur}
-\item \textcolor{green}{✅ lse\_shared\_system.sv} \\
-  \small{Système intégré complet}
-\end{itemize}
-
-\column{0.5\textwidth}
-\textbf{Caractéristiques:}
-\begin{itemize}
-\item \textbf{Modes opératoires:}
-  \begin{itemize}
-  \item 24-bit full precision
-  \item SIMD 4×6-bit
-  \end{itemize}
-\item \textbf{CLUT optimisée:}
-  \begin{itemize}
-  \item Arbitration 4→1
-  \item Pipeline 3 cycles
-  \item Correction d'erreur
-  \end{itemize}
-\item \textbf{Performance:}
-  \begin{itemize}
-  \item 4 MACs parallèles
-  \item Latence: 3 cycles
-  \item Débit: 4 ops/cycle
-  \end{itemize}
-\end{itemize}
-\end{columns}
 \end{frame}
 
 \begin{frame}{Résultats de Validation}
@@ -386,15 +321,9 @@ logarithmic multipliers (MULT.).}
 \hline
 \textbf{Module} & \textbf{Tests} & \textbf{Succès} & \textbf{Taux} \\
 \hline
-LSE Add & 12 & 12 & \textcolor{green}{\textbf{100\%}} \\
+LSE Add & 40 & 47 & \textcolor{yellow}{\textbf{85.1\%}} \\
 \hline
 LSE Mult & 14 & 14 & \textcolor{green}{\textbf{100\%}} \\
-\hline
-LSE Accumulator & 18 & 14 & \textcolor{orange}{\textbf{77.8\%}} \\
-\hline
-Register & Tests & Pass & \textcolor{green}{\textbf{100\%}} \\
-\hline
-\textbf{LSE Shared System} & \textbf{5} & \textbf{5} & \textcolor{green}{\textbf{100\%}} \\
 \hline
 \end{tabular}
 \end{table}
@@ -402,20 +331,19 @@ Register & Tests & Pass & \textcolor{green}{\textbf{100\%}} \\
 \vspace{0.3cm}
 \textbf{Tests Système Validés:}
 \begin{itemize}
-\item ✅ Opération MAC simple
-\item ✅ Opérations MAC parallèles (4 unités)
-\item ✅ Opérations MAC séquentielles
-\item ✅ Mode bypass
-\item ✅ Test de stress multi-itérations
+\item  Opération MAC simple
+\item  Opérations MAC parallèles (4 unités)
+\item  Opérations MAC séquentielles
+\item  Mode bypass
+\item  Test de stress multi-itérations
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Optimisations et Innovations Implémentées}
+\begin{frame}{Optimisations possible}
 \begin{enumerate}
 \item \textbf{CLUT Partagée} (vs CLUT individuelle)
    \begin{itemize}
-   \item 75\% de réduction de surface pour 4 unités
-   \item Arbitration intelligente avec gestion de priorité
+   \item de réduction de surface
    \item Pas de perte de performance grâce au pipeline
    \end{itemize}
 
@@ -423,7 +351,6 @@ Register & Tests & Pass & \textcolor{green}{\textbf{100\%}} \\
    \begin{itemize}
    \item 24-bit: haute précision pour modèles complexes
    \item SIMD 4×6-bit: 4× débit pour réseaux compacts
-   \item Commutation dynamique sans overhead
    \end{itemize}
 
 \item \textbf{Pipeline Optimisé}
@@ -441,6 +368,80 @@ Register & Tests & Pass & \textcolor{green}{\textbf{100\%}} \\
 \end{enumerate}
 \end{frame}
 
+\begin{frame}{Bloc LSE Mult SIMD}
+\begin{columns}
+\column{0.52\textwidth}
+\begin{itemize}
+   \item Architecture hiérarchique: \textit{lanes} 1\,×\,24, 2\,×\,12 ou 4\,×\,6 bits
+   \item \textbf{Full adders} chaînés pour chaque lane avec remise à zéro du carry
+   \item \textbf{Mux} paramétriques contrôlés par \texttt{mode} pour isoler les lanes
+   \item Entrées synchronisées via pipeline léger (mode combinatoire possible)
+   \item Interface simple: \texttt{a}, \texttt{b}, \texttt{mode} $\rightarrow$ \texttt{sum}, \texttt{carry	extunderscore out}
+\end{itemize}
+
+\column{0.48\textwidth}
+\begin{tikzpicture}[x=1.1cm,y=0.9cm,>=Latex,thick]
+   	ikzset{
+      signal/.style={draw,fill=blue!10,minimum width=2.2cm,minimum height=0.9cm},
+      mux/.style={draw,fill=orange!25,trapezium,trapezium left angle=70,trapezium right angle=110,minimum width=1.8cm,minimum height=1.0cm},
+      splitter/.style={draw,fill=green!15,minimum width=2.4cm,minimum height=0.9cm,rounded corners=2pt},
+      adder/.style={draw,fill=purple!15,minimum width=2.0cm,minimum height=0.9cm,rounded corners=2pt},
+      reg/.style={draw,fill=cyan!15,minimum width=1.4cm,minimum height=0.9cm},
+      bus/.style={line width=1pt}
+   }
+
+   % Inputs
+   \node[signal] (inA) at (0,2.2) {$A[23:0]$};
+   \node[signal] (inB) at (0,1.0) {$B[23:0]$};
+   \node[reg] (modeReg) at (0,-0.3) {mode};
+
+   % Draw clock triangle for register
+   \draw (modeReg.west)+(0,0.15) -- ++(-0.35,-0.15) -- ++(0.35,-0.15) -- cycle;
+
+   \node[mux,anchor=west] (muxMask) at (1.8,1.6) {Mux masque};
+   \node[splitter,anchor=west] (lanes) at (3.3,1.6) {Gating lanes};
+
+   % Lane full adder chains
+   \node[adder,anchor=west] (fa0) at (5.2,2.4) {Lane 0: FA $\times 6$};
+   \node[adder,anchor=west] (fa1) at (5.2,1.6) {Lane 1: FA $\times 6$};
+   \node[adder,anchor=west] (fa2) at (5.2,0.8) {Lane 2: FA $\times 6$};
+   \node[adder,anchor=west] (fa3) at (5.2,0.0) {Lane 3: FA $\times 6$};
+
+   % Output register and carry mux
+   \node[reg,anchor=west] (sumReg) at (7.4,1.6) {sum};
+   \draw (sumReg.west)+(0,0.15) -- ++(-0.35,-0.15) -- ++(0.35,-0.15) -- cycle;
+   \node[mux,anchor=west] (carryMux) at (7.4,0.1) {Mux carry};
+   \node[signal,anchor=west] (sumOut) at (9.0,1.6) {Sortie $sum[23:0]$};
+   \node[signal,anchor=west] (carryOut) at (9.0,0.1) {$carry\_{lane}$};
+
+   % Connections
+   \draw[->,bus] (inA.east) -- ++(0.4,0) |- (muxMask.140);
+   \draw[->,bus] (inB.east) -- ++(0.4,0) |- (muxMask.220);
+   \draw[->] (modeReg.east) -- ++(0.4,0) |- (muxMask.270);
+
+   \draw[->,bus] (muxMask.east) -- (lanes.west);
+   \coordinate (split) at ($(lanes.east)+(0.5,0)$);
+   \draw[->,bus] (lanes.east) -- (split);
+
+   % Split connections to adders
+   \foreach \offset/\target in {0.9/fa0.west,0.3/fa1.west,-0.3/fa2.west,-0.9/fa3.west}{%
+      \draw[->,bus] (split) |- ($(split)+(0,\offset)$) -- (\target);
+   }
+
+   % Outputs from adders
+   \draw[->,bus] (fa0.east) -- ++(0.5,0) |- (sumReg.west);
+   \draw[->,bus] (fa1.east) -- ++(0.5,0) |- (sumReg.west);
+   \draw[->,bus] (fa2.east) -- ++(0.5,0) |- (sumReg.west);
+   \draw[->,bus] (fa3.east) -- ++(0.5,0) |- (sumReg.west);
+   \draw[->,bus] (fa3.east) -- ++(0.5,-0.8) |- (carryMux.west);
+
+   \draw[->,bus] (sumReg.east) -- (sumOut.west);
+   \draw[->] (carryMux.east) -- (carryOut.west);
+\end{tikzpicture}
+\label{fig:lse-mult-simd-architecture}
+\end{columns}
+\end{frame}
+
 \section{Conclusion}
 
 \begin{frame}{Conclusion}
@@ -453,8 +454,7 @@ Register & Tests & Pass & \textcolor{green}{\textbf{100\%}} \\
 
 \vspace{0.5cm}
 \normalsize
-Yao et al., IEEE Transactions on\\
-Circuits and Systems I, 2025
+Robin Warichet
 
 \vspace{1cm}
 \end{center}

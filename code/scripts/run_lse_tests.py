@@ -336,8 +336,11 @@ def parse_test_results(output: str) -> Dict:
         "passed_tests": 0,
         "failed_tests": 0,
         "success_rate": 0.0,
-        "details": []
+        "details": [],
+        "errors": []
     }
+    current_label: Optional[str] = None
+    current_status: Optional[str] = None
     
     # Chercher le nombre total de tests
     total_match = re.search(r'Total Tests:\s*(\d+)', output)
@@ -373,11 +376,40 @@ def parse_test_results(output: str) -> Dict:
     
     # Extraire les détails des tests individuels
     for line in output.split('\n'):
-        if 'PASS' in line or 'FAIL' in line:
-            # Nettoyer et extraire l'info pertinente
-            cleaned = re.sub(r'#\s*\d+', '', line).strip()
-            if cleaned and len(cleaned) < 200:  # Éviter les lignes trop longues
+        stripped = line.strip()
+        normalized = stripped.lstrip('#').strip() if stripped.startswith('#') else stripped
+
+        if 'PASS' in normalized or 'FAIL' in normalized:
+            cleaned = re.sub(r'#\s*\d+', '', normalized).strip()
+            if cleaned and len(cleaned) < 200:
                 result["details"].append(cleaned)
+
+        status_match = re.match(r'(PASS|FAIL)\s*-\s*(.+)', normalized)
+        if status_match:
+            current_status = status_match.group(1)
+            current_label = status_match.group(2).strip()
+            continue
+
+        error_match = re.search(r'Error \(Result - Reference\):\s*([+-]?\d*\.\d+(?:[eE][+-]?\d+)?)', normalized)
+        if error_match and current_label:
+            # Previously we skipped SIMD / 6-bit packed tests; SIMD modes removed
+            # from the RTL. Parse all scalar error entries normally.
+
+            try:
+                error_value = float(error_match.group(1))
+            except ValueError:
+                continue
+
+            import math
+            # Ignore NaN or infinite entries (e.g., caused by -inf sentinel operations)
+            if not math.isfinite(error_value):
+                continue
+
+            result["errors"].append({
+                "label": current_label,
+                "status": current_status,
+                "error": error_value
+            })
     
     return result
 
@@ -445,6 +477,13 @@ def run_test_module(module_id: str, config: Dict, vlib_cmd: str, vlog_cmd: str, 
             print(f"    {Colors.GRAY}{detail}{Colors.RESET}")
         if len(results["details"]) > 5:
             print(f"    {Colors.GRAY}... et {len(results['details']) - 5} autres{Colors.RESET}")
+
+    if verbose and results["errors"]:
+        print(f"\n  Erreurs (premiers 5):")
+        for entry in results["errors"][:5]:
+            print(f"    {Colors.GRAY}{entry['label']}: {entry['error']:.6f}{Colors.RESET}")
+        if len(results["errors"]) > 5:
+            print(f"    {Colors.GRAY}... et {len(results['errors']) - 5} autres{Colors.RESET}")
     
     return {
         "module_id": module_id,
@@ -456,8 +495,95 @@ def run_test_module(module_id: str, config: Dict, vlib_cmd: str, vlog_cmd: str, 
         "failed_tests": results["failed_tests"],
         "success_rate": results["success_rate"],
         "duration": duration,
-        "details": results["details"][:10]  # Garder seulement les 10 premiers
+        "details": results["details"][:10],  # Garder seulement les 10 premiers
+        "errors": results["errors"]
     }
+
+
+def generate_error_histograms(all_results: List[Dict]):
+    """Génère des histogrammes d'erreurs pour chaque module testé."""
+    modules_with_errors = [r for r in all_results if r.get("errors")]
+    if not modules_with_errors:
+        return
+
+    try:
+        import math
+        import matplotlib
+        matplotlib.use("Agg", force=True)
+        import matplotlib.pyplot as plt
+    except Exception as exc:
+        print_status("warning", f"Matplotlib indisponible ({exc}); histogrammes ignorés")
+        return
+
+    print_status("info", "Génération des graphiques d'erreurs...")
+
+    for result in modules_with_errors:
+        errors = result.get("errors", [])
+        if not errors:
+            continue
+
+        values = [entry["error"] for entry in errors if math.isfinite(entry.get("error", 0.0))]
+        if not values:
+            continue
+
+        module_id = result.get("module_id", "module")
+        module_name = result.get("name", module_id)
+
+        try:
+            fig, (ax_scatter, ax_box) = plt.subplots(1, 2, figsize=(10, 4.5), gridspec_kw={'width_ratios': [3, 1]})
+
+            abs_values = [abs(v) for v in values]
+            positive_values = [v for v in abs_values if v > 0]
+            epsilon = (min(positive_values) / 10.0) if positive_values else 1e-12
+            plot_values = [v if v > 0 else epsilon for v in abs_values]
+
+            zero_count = sum(1 for v in abs_values if v == 0)
+            if zero_count:
+                print_status(
+                    "info",
+                    f"{zero_count} erreurs nulles remplacées par {epsilon:.2e} pour l'échelle log"
+                )
+
+            indices = list(range(len(plot_values)))
+            ax_scatter.scatter(indices, plot_values, color="#4e79a7", alpha=0.7)
+            ax_scatter.set_title(f"Erreurs absolues par test - {module_name}")
+            ax_scatter.set_xlabel("Index du test")
+            ax_scatter.set_ylabel("|Erreur| (Result - Reference)")
+            ax_scatter.grid(True, linestyle=':', linewidth=0.5, alpha=0.7)
+            ax_scatter.set_yscale("log")
+
+            ax_box.boxplot(
+                plot_values,
+                vert=True,
+                patch_artist=True,
+                boxprops={'facecolor': '#a0c4ff', 'color': '#4e79a7'},
+                medianprops={'color': '#222222', 'linewidth': 2},
+                whiskerprops={'color': '#4e79a7'},
+                capprops={'color': '#4e79a7'},
+                flierprops={'marker': 'o', 'markerfacecolor': '#f28e2b', 'markeredgecolor': '#f28e2b', 'markersize': 6}
+            )
+            ax_box.set_title("Distribution (|Erreur|)")
+            ax_box.set_ylabel("|Erreur|")
+            ax_box.yaxis.set_label_position("right")
+            ax_box.yaxis.tick_right()
+            ax_box.set_yscale("log")
+
+            min_abs = min(abs_values)
+            max_abs = max(abs_values)
+
+            fig.suptitle(f"Analyse des erreurs - {module_name}", fontsize=12, fontweight='bold')
+            fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+
+            output_path = OUTPUT_DIR / f"{module_id}_error_analysis.png"
+            fig.savefig(output_path, dpi=150)
+            plt.close(fig)
+            print_status(
+                "success",
+                f"Graphique des erreurs sauvegardé: {output_path} (min|err|={min_abs:.6f}, max|err|={max_abs:.6f})"
+            )
+        except Exception as exc:
+            print_status("warning", f"Impossible de générer l'histogramme pour {module_name}: {exc}")
+            continue
 
 
 def generate_summary_report(all_results: List[Dict], output_file: Optional[Path] = None):
@@ -663,6 +789,9 @@ Exemples d'utilisation:
         result = run_test_module(module_id, config, vlib_cmd, vlog_cmd, vsim_cmd, verbose=args.verbose)
         all_results.append(result)
     
+    # Générer les histogrammes d'erreurs si disponibles
+    generate_error_histograms(all_results)
+
     # Générer le rapport
     report_file = args.report if args.report else (REPORTS_DIR / "lse_test_report.json")
     generate_summary_report(all_results, report_file)

@@ -180,7 +180,8 @@ Le module est organisé en 2 étages de pipeline :
 \begin{notebox}{Modes Supportés}
 \begin{itemize}
     \item \textbf{Mode 24-bit} (\signal{pe\_mode} = 00) : Une opération LSE complète
-    \item \textbf{Mode SIMD 4×6-bit} (\signal{pe\_mode} = 10) : Quatre opérations LSE parallèles sur 6 bits
+    \item \textbf{Mode SIMD 4×6-bit} : (Supprimé) Les modes SIMD/6-bit ont été retirés du design principal
+          et ne sont plus maintenus. Le code et les tests se concentrent désormais sur le mode scalaire 24-bit.
 \end{itemize}
 \end{notebox}
 
@@ -196,29 +197,18 @@ always_ff @(posedge clk or negedge rst_n) begin
     end else if (enable) begin
         stage1_valid <= 1'b1;
         
-        if (pe_mode == 2'b10) begin  // Mode SIMD 4x6b
-            for (int i = 0; i < 4; i++) begin
-                logic [5:0] x_ch, y_ch;
-                x_ch = x_in[i*6 +: 6];
-                y_ch = y_in[i*6 +: 6];
-                
-                if (x_ch >= y_ch) begin
-                    stage1_larger[i*6 +: 6] <= x_ch;
-                    stage1_diff[i*6 +: 6]   <= x_ch - y_ch;
-                end else begin
-                    stage1_larger[i*6 +: 6] <= y_ch;
-                    stage1_diff[i*6 +: 6]   <= y_ch - x_ch;
-                end
-            end
-        end else begin  // Mode 24-bit
-            if (x_in >= y_in) begin
-                stage1_larger <= x_in;
-                stage1_diff   <= x_in - y_in;
-            end else begin
-                stage1_larger <= y_in;
-                stage1_diff   <= y_in - x_in;
-            end
+        // SIMD mode code removed: the unified implementation now focuses on
+        // scalar 24-bit operations. Historical SIMD examples are archived in
+        // code/docs/archived_simd/ for reference.
+        // Scalar 24-bit behavior:
+        if (x_in >= y_in) begin
+            stage1_larger <= x_in;
+            stage1_diff   <= x_in - y_in;
+        end else begin
+            stage1_larger <= y_in;
+            stage1_diff   <= y_in - x_in;
         end
+        
     end
 end
 \end{lstlisting}
@@ -234,32 +224,8 @@ always_ff @(posedge clk or negedge rst_n) begin
     end else if (stage1_valid) begin
         valid_out <= 1'b1;
         
-        if (pe_mode == 2'b10) begin  // Mode SIMD 4x6b
-            for (int i = 0; i < 4; i++) begin
-                logic [5:0] diff = stage1_diff[i*6 +: 6];
-                logic [5:0] larger = stage1_larger[i*6 +: 6];
-                logic [5:0] correction;
-                
-                // Correction graduee basee sur la difference
-                if (diff == 0)
-                    correction = 6'd1;  // log(2) en 6 bits
-                else if (diff <= 6'd2)
-                    correction = 6'd1;
-                else if (diff <= 6'd8)
-                    correction = 6'd0;  // Approximation
-                else
-                    correction = 6'd0;  // Negligeable
-                
-                // Saturation a la valeur max
-                if (larger > (6'd63 - correction))
-                    result[i*6 +: 6] <= 6'd63;
-                else
-                    result[i*6 +: 6] <= larger + correction;
-            end
-        end else begin  // Mode 24-bit
-            // Correction similaire pour 24 bits
-            // ... (code complet dans lse_add.sv)
-        end
+        // SIMD correction logic removed. Scalar 24-bit corrections are
+        // implemented in the RTL (`lse_add.sv`) and are the active code path.
     end
 end
 \end{lstlisting}

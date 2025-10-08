@@ -117,24 +117,10 @@ module tb_lse_mult_unified;
     apply_test_vector(24'h123456, 24'h800000, 2'b00, 24'h800000, "24-bit: Normal * NEG_INF = NEG_INF");
     apply_test_vector(24'h800000, 24'h800000, 2'b00, 24'h800000, "24-bit: NEG_INF * NEG_INF = NEG_INF");
     
-    // =====================================================================
-    // Test Suite 3: 6-bit Mode Operations
-    // =====================================================================
-    $display("\n=== Test Suite 3: 6-bit Mode Operations ===");
-    
-    // Each 6-bit subvalue: [5:0] where bit 5 is sign, bits [4:0] are magnitude
-    // Test simple additions in each lane
-    apply_test_vector(24'h010203, 24'h040506, 2'b01, 24'h050709, "6-bit: Simple lane additions");
-    apply_test_vector(24'h111111, 24'h111111, 2'b01, 24'h222222, "6-bit: Identical values");
-    apply_test_vector(24'h000000, 24'h123456, 2'b01, 24'h123456, "6-bit: Zero + Packed value");
-    
-    // =====================================================================
-    // Test Suite 4: 6-bit Mode Special Values
-    // =====================================================================
-    $display("\n=== Test Suite 4: 6-bit Mode Special Values ===");
-    
-    // NEG_INF in 6-bit mode is 6'b010000 (magnitude = 16)
-    apply_test_vector(24'h101010, 24'h101010, 2'b01, 24'h101010, "6-bit: NEG_INF in all lanes");
+  // =====================================================================
+  // Note: 6-bit/SIMD test suites removed - SIMD modes deprecated
+  // The unified RTL now targets scalar 24-bit operation only. SIMD-related
+  // test artifacts have been archived in code/docs/archived_simd/ for history.
     
     // =====================================================================
     // Test Suite 5: Edge Cases
@@ -144,8 +130,8 @@ module tb_lse_mult_unified;
     apply_test_vector(24'hFFFFFF, 24'h000001, 2'b00, 24'h000000, "24-bit: Max + 1 (potential overflow)");
     apply_test_vector(24'h7FFFFF, 24'h000001, 2'b00, 24'h800000, "24-bit: Near-max + 1");
     
-    // Test overflow protection in 6-bit mode
-    apply_test_vector(24'h0F0F0F, 24'h0F0F0F, 2'b01, 24'h0F0F0F, "6-bit: Max magnitude saturation test");
+  // Test overflow protection in 6-bit mode (removed)
+  // SIMD/6-bit saturation test archived and not executed in active testbench.
     
     // =====================================================================
     // Test Results Summary

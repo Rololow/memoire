@@ -88,8 +88,8 @@ C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.
 **Caractéristiques** :
 - Implémentation fidèle de l'algorithme LSE-PE
 - Support CLUT avec 1024 entrées
-- Mode 24-bit avec format fixed-point [14.10]
-- Mode SIMD 4×6-bit pour operations parallèles
+ - Mode 24-bit avec format fixed-point [14.10]
+ - Note: les variantes SIMD 4×6-bit ont été retirées du design actif et archivées. Voir `code/docs/archived_simd/` pour les artefacts historiques.
 - Gestion des valeurs spéciales (NEG_INF)
 
 **Tests inclus** :
@@ -99,7 +99,7 @@ C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.
 - Grande distance
 - Propriété commutative
 - Gestion du zéro
-- Mode SIMD 6-bit
+ - Mode SIMD 6-bit (supprimé)
 - Cas limites et overflow
 
 ### 2. lse_mult

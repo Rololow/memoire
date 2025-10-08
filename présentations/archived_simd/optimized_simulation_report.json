@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-10-05T18:01:00",
+  "source": "test_simd_optimized.ps1",
+  "type": "optimized_python_verified",
+  "description": "Archived: Tests SIMD optimisés (archived after SIMD removal)",
+  "modules_tested": [
+    "SIMD_2x12b_unified",
+    "SIMD_4x6b_optimized", 
+    "SIMD_unified_optimized"
+  ],
+  "summary": {
+    "total_modules": 3,
+    "perfect_modules": 3,
+    "failed_modules": 0,
+    "total_tests": 66,
+    "total_passed": 66,
+    "total_failed": 0,
+    "overall_success_rate": 100.0,
+    "mean_error": 0.0,
+    "max_error": 0.0,
+    "std_error": 0.0
+  },
+  "detailed_results": {
+    "SIMD_2x12b": {
+      "total_tests": 22,
+      "passed_tests": 22,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "status": "perfect",
+      "description": "SIMD 2×12b déjà optimisé à 100%"
+    },
+    "SIMD_4x6b": {
+      "total_tests": 22,
+      "passed_tests": 22,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "status": "perfect",
+      "description": "SIMD 4×6b optimisé avec Python-verification"
+    },
+    "SIMD_unified": {
+      "total_tests": 22,
+      "passed_tests": 22,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "status": "perfect",
+      "description": "SIMD Unified optimisé avec Python-verification"
+    }
+  },
+  "notes": [
+    "Archived on 2025-10-08 after SIMD modes removal from active codebase",
+    "Original file moved to présentations/archived_simd/"
+  ]
+}

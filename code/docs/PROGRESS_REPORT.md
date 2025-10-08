@@ -29,7 +29,7 @@
 - **Architecture:** 4 unités MAC parallèles partageant 1 CLUT
 - **Économie:** 75% de ressources vs 4 CLUTs séparées
 - **Latence:** 3 cycles pipeline avec arbitration automatique
-- **Modes:** Support 24-bit et SIMD 4×6-bit
+ - **Modes:** Support 24-bit (SIMD 4×6-bit retiré et archivé)
 - **Performance:** 100% success rate (5/5 tests)
 - **Tests validés:**
   - ✅ MAC parallèles indépendants
@@ -49,15 +49,15 @@
 ### **Modules Core Implémentés**
 
 #### 3. ✅ **lse_add.sv** - Addition LSE
-- **Format:** 24-bit (14 int + 10 frac) et SIMD 4×6-bit
+ - **Format:** 24-bit (14 int + 10 frac). Variantes SIMD archivées.
 - **Algorithme:** LSE(x,y) = max + log(1 + exp(-|diff|))
 - **Latence:** 2 cycles avec pipeline
 - **Performance:** 100% (12/12 tests)
-- **Tests:** Égalité, différences, signes mixtes, SIMD
+ - **Tests:** Égalité, différences, signes mixtes (tests SIMD archivés)
 - **Status:** Production ready ✅
 
 #### 4. ✅ **lse_mult.sv** - Multiplication Log-Space
-- **Format:** 24-bit et SIMD 4×6-bit
+ - **Format:** 24-bit (SIMD retiré)
 - **Algorithme:** x + y dans l'espace logarithmique
 - **Latence:** 1 cycle avec pipeline
 - **Performance:** 100% (14/14 tests)
@@ -212,7 +212,7 @@ code/
 | **Latence Add** | 2 cycles | Pipeline |
 | **Latence Mult** | 1 cycle | Pipeline |
 | **Latence Acc** | 1 cycle | Par accumulation |
-| **Modes supportés** | 24-bit, SIMD 4×6-bit | Sélection dynamique |
+| **Modes supportés** | 24-bit (SIMD retiré) | Sélection dynamique |
 
 ### Ressources Hardware (Estimation)
 | Composant | LUTs estimées | Registres | Mémoire |
@@ -231,7 +231,7 @@ code/
 | Validation modules | >90% | 94% | ✅ Atteint |
 | Économie CLUT | >50% | 75% | ✅ Dépassé |
 | Latence < 5 cycles | Oui | 3 cycles | ✅ Dépassé |
-| Support SIMD | Oui | 4×6-bit | ✅ Atteint |
+| Support SIMD | Non applicable | (archivé) | ⚠️ Retiré |
 
 ## 🔍 Analyse Technique
 
@@ -248,7 +248,7 @@ code/
 1. ✅ **Architecture shared:** CLUT partagée entre 4 MACs avec arbitration round-robin
 2. ✅ **Pipeline synchrone:** Tous modules avec clk, rst, valid_out cohérents
 3. ✅ **Tests exhaustifs:** 49 tests couvrant tous les cas d'usage
-4. ✅ **Support SIMD:** Mode 4×6-bit intégré avec sélection dynamique
+4. ✅ **Support SIMD (historique/archivé):** Les variantes SIMD ont été testées antérieurement et les artefacts sont disponibles dans `code/docs/archived_simd/`.
 5. ✅ **Nettoyage code:** Consolidation modules, suppression duplications
 6. ✅ **Documentation:** 6 sections présentation complètes avec résultats
 

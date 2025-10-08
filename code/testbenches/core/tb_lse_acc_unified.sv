@@ -2,7 +2,6 @@
 // Unified Testbench for LSE Acc Module
 // Description: Comprehensive testbench for unified lse_acc module
 // Version: Unified standard interface testing
-// Compatible: Icarus Verilog / Standard Verilog
 // =============================================================================
 
 `timescale 1ns/1ps

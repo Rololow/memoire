@@ -2,7 +2,6 @@
 // Unified Testbench for LSE Add Module (Algorithm 1 Implementation)
 // Description: Comprehensive testbench for LSE-PE algorithm implementation
 // Version: Testing Algorithm 1 from NeurIPS 2024 paper
-// Compatible: Icarus Verilog / Standard Verilog
 // Reference: Yao et al., "LSE-PE: Hardware Efficient for Tractable Probabilistic Reasoning"
 // =============================================================================
 
@@ -16,7 +15,7 @@ module tb_lse_add_unified;
   // Parameters (matching unified module parameters)
   // =========================================================================
   parameter WIDTH = 24;
-  parameter LUT_SIZE = 1024;
+  parameter LUT_SIZE = 16;
   parameter LUT_PRECISION = 10;
   parameter FRAC_BITS = 10;
   parameter CLK_PERIOD = 10;  // 10ns = 100MHz
@@ -39,7 +38,7 @@ module tb_lse_add_unified;
   reg enable;
   reg [WIDTH-1:0] operand_a;
   reg [WIDTH-1:0] operand_b;
-  reg [LUT_PRECISION-1:0] lut_table [0:LUT_SIZE-1];
+  reg [LUT_PRECISION-1:0] clut_values [0:LUT_SIZE-1];
   reg [1:0] pe_mode;
   wire [WIDTH-1:0] result;
   wire valid_out;
@@ -49,7 +48,6 @@ module tb_lse_add_unified;
   // =========================================================================
   lse_add #(
     .WIDTH(WIDTH),
-    .LUT_SIZE(LUT_SIZE),
     .LUT_PRECISION(LUT_PRECISION)
   ) dut (
     .clk(clk),
@@ -57,7 +55,7 @@ module tb_lse_add_unified;
     .enable(enable),
     .operand_a(operand_a),
     .operand_b(operand_b),
-    .lut_table(lut_table),
+    .clut_values(clut_values),
     .pe_mode(pe_mode),
     .result(result),
     .valid_out(valid_out)
@@ -71,7 +69,14 @@ module tb_lse_add_unified;
   function real fixed_to_real;
     input [WIDTH-1:0] fixed_val;
     begin
-      fixed_to_real = $itor(fixed_val) / (2.0 ** FRAC_BITS);
+      // Special encoding: highest-bit pattern reserved for NEG_INF sentinel
+      // e.g., 24'h800000 is used by the tests to indicate -infinity in log-domain
+      if (fixed_val == {1'b1, {(WIDTH-1){1'b0}}}) begin
+        // Return negative infinity so lse_reference and comparisons behave correctly
+        fixed_to_real = -1.0/0.0; // -inf
+      end else begin
+        fixed_to_real = $itor(fixed_val) / (2.0 ** FRAC_BITS);
+      end
     end
   endfunction
   
@@ -123,7 +128,7 @@ module tb_lse_add_unified;
     input real reference_exact = 0.0,
     input real reference_tolerance = 0.0
   );
-    real a_real, b_real, result_real, reference_real, tolerance_real;
+  real a_real, b_real, result_real, reference_real, tolerance_real, error_value;
 
     begin
       test_count = test_count + 1;
@@ -167,8 +172,10 @@ module tb_lse_add_unified;
                  test_a, a_real, test_b, b_real, test_mode);
         $display("    Expected: [%h, %h], Got: %h (%.3f)", 
                  expected_min, expected_max, result, result_real);
-        $display("    Error (Result - Reference): %.6f", result_real - reference_real);
       end
+
+      error_value = result_real - reference_real;
+      $display("    Error (Result - Reference): %.6f", error_value);
 
       if (has_reference_exact) begin
         $display("    Exact reference: %.6f", reference_real);
@@ -202,42 +209,31 @@ module tb_lse_add_unified;
   // =========================================================================
   task initialize_lut;
     integer i;
-    real x, correction_value, approximation, exact_value, correction_scaled;
+    const logic [LUT_PRECISION-1:0] CLUT_INIT [0:LUT_SIZE-1] = '{
+      10'b0000000000,
+      10'b0000011001,
+      10'b0000101101,
+      10'b0000110000,
+      10'b0001001001,
+      10'b0001000000,
+      10'b0000111111,
+      10'b0001000110,
+      10'b0001010110,
+      10'b0001000010,
+      10'b0000110001,
+      10'b0000100010,
+      10'b0000010110,
+      10'b0000001100,
+      10'b0000000101,
+      10'b0000000001
+    };
     begin
       $display("Initializing CLUT with %d entries...", LUT_SIZE);
-      
-      // Generate correction values for the LSE approximation
-      // The correction is: log2(1 + 2^(-x)) - approximation_error
       for (i = 0; i < LUT_SIZE; i = i + 1) begin
-        // Map index to range [0, 1) representing the fractional part
-        x = $itor(i) / $itor(LUT_SIZE);
-        
-        // The exact value we want is: log2(1 + 2^(-x))
-        // Our approximation gives us: 2^(-x) 
-        // The correction needed is: log2(1 + 2^(-x)) - 2^(-x)
-        
-        exact_value = $ln(1.0 + $pow(2.0, -x)) / $ln(2.0);
-        approximation = $pow(2.0, -x);
-        correction_value = exact_value - approximation;
-        
-        // Convert correction to fixed-point (10-bit fractional)
-        // The correction is a small positive value, scale it appropriately
-        correction_scaled = correction_value * 1024.0; // 2^10 for 10-bit fractional
-        
-        lut_table[i] = $rtoi(correction_scaled);
-        
-        // Clamp to 10-bit range [0, 1023]
-        if (lut_table[i] > 10'h3FF) lut_table[i] = 10'h3FF;
-        if (lut_table[i] < 0) lut_table[i] = 0;
+        clut_values[i] = CLUT_INIT[i];
+        $display("  Entry %0d: %010b", i, clut_values[i]);
       end
-      
       $display("CLUT initialization complete.");
-      $display("Sample CLUT values:");
-      $display("  Entry 0:    %h (x=0.000, corr=%.4f)", lut_table[0], $itor(lut_table[0])/1024.0);
-      $display("  Entry 256:  %h (x=0.250, corr=%.4f)", lut_table[256], $itor(lut_table[256])/1024.0);
-      $display("  Entry 512:  %h (x=0.500, corr=%.4f)", lut_table[512], $itor(lut_table[512])/1024.0);
-      $display("  Entry 768:  %h (x=0.750, corr=%.4f)", lut_table[768], $itor(lut_table[768])/1024.0);
-      $display("  Entry 1023: %h (x=0.999, corr=%.4f)", lut_table[1023], $itor(lut_table[1023])/1024.0);
     end
   endtask
   
@@ -411,15 +407,7 @@ module tb_lse_add_unified;
     apply_test_vector(24'h000000, 24'h000000, 2'b00, 24'h000000, 24'h000010,
                      "LSE(0.0, 0.0)");
     
-    // =====================================================================
-    // Test Suite 7: 6-bit SIMD Mode Operations
-    // =====================================================================
-    $display("\n=== Test Suite 7: 6-bit SIMD Mode Operations ===");
-    
-    apply_exact_test(24'h012345, 24'h543210, 2'b01, 24'h555555, "6-bit: Basic packed addition 1");
-    apply_exact_test(24'h111111, 24'h222222, 2'b01, 24'h333333, "6-bit: Basic packed addition 2");
-    apply_exact_test(24'h000000, 24'h123456, 2'b01, 24'h123456, "6-bit: Zero + Packed value");
-    
+  // SIMD mode deprecated: only scalar 24-bit tests remain in this testbench.
     // =====================================================================
     // Test Suite 8: Edge Cases and Overflow
     // =====================================================================
