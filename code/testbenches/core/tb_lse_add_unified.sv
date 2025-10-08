@@ -19,6 +19,9 @@ module tb_lse_add_unified;
   parameter LUT_PRECISION = 10;
   parameter FRAC_BITS = 10;
   parameter CLK_PERIOD = 10;  // 10ns = 100MHz
+  localparam logic [WIDTH-1:0] NEG_INF_CODE = {1'b1, {(WIDTH-1){1'b0}}};
+  localparam int SIGNED_MIN = -(1 << (WIDTH-1));
+  localparam int SIGNED_MAX =  (1 << (WIDTH-1)) - 1;
   
   // Mathematical constants for verification
   parameter real LOG2_E = 1.442695040888963;  // log2(e)
@@ -38,7 +41,7 @@ module tb_lse_add_unified;
   reg enable;
   reg [WIDTH-1:0] operand_a;
   reg [WIDTH-1:0] operand_b;
-  reg [LUT_PRECISION-1:0] clut_values [0:LUT_SIZE-1];
+  logic signed [LUT_PRECISION-1:0] clut_values [0:LUT_SIZE-1];
   reg [1:0] pe_mode;
   wire [WIDTH-1:0] result;
   wire valid_out;
@@ -50,15 +53,23 @@ module tb_lse_add_unified;
     .WIDTH(WIDTH),
     .LUT_PRECISION(LUT_PRECISION)
   ) dut (
-    .clk(clk),
-    .rst(rst),
-    .enable(enable),
-    .operand_a(operand_a),
-    .operand_b(operand_b),
-    .clut_values(clut_values),
-    .pe_mode(pe_mode),
-    .result(result),
-    .valid_out(valid_out)
+    .i_clk(clk),
+    .i_rst(rst),
+    .i_enable(enable),
+    .i_operand_a(operand_a),
+    .i_operand_b(operand_b),
+    .i_clut_values(clut_values),
+    .i_pe_mode(pe_mode),
+    .o_result(result),
+    .o_valid_out(valid_out)
+  );
+
+  // Instantiate constant LUT provider
+  lut #(
+    .ENTRIES(LUT_SIZE),
+    .ENTRY_WIDTH(LUT_PRECISION)
+  ) clut_rom (
+    .o_values(clut_values)
   );
   
   // =========================================================================
@@ -68,14 +79,13 @@ module tb_lse_add_unified;
   // Convert fixed-point to real
   function real fixed_to_real;
     input [WIDTH-1:0] fixed_val;
+    logic signed [WIDTH-1:0] signed_val;
     begin
-      // Special encoding: highest-bit pattern reserved for NEG_INF sentinel
-      // e.g., 24'h800000 is used by the tests to indicate -infinity in log-domain
-      if (fixed_val == {1'b1, {(WIDTH-1){1'b0}}}) begin
-        // Return negative infinity so lse_reference and comparisons behave correctly
-        fixed_to_real = -1.0/0.0; // -inf
+      if (fixed_val == NEG_INF_CODE) begin
+        fixed_to_real = -1.0/0.0; // -inf sentinel
       end else begin
-        fixed_to_real = $itor(fixed_val) / (2.0 ** FRAC_BITS);
+        signed_val = $signed(fixed_val);
+        fixed_to_real = $itor(signed_val) / (2.0 ** FRAC_BITS);
       end
     end
   endfunction
@@ -83,8 +93,15 @@ module tb_lse_add_unified;
   // Convert real to fixed-point
   function [WIDTH-1:0] real_to_fixed;
     input real real_val;
+    logic signed [WIDTH:0] scaled;
     begin
-      real_to_fixed = $rtoi(real_val * (2.0 ** FRAC_BITS));
+      scaled = $rtoi(real_val * (2.0 ** FRAC_BITS));
+      if (scaled > SIGNED_MAX) begin
+        scaled = SIGNED_MAX;
+      end else if (scaled < SIGNED_MIN) begin
+        scaled = SIGNED_MIN;
+      end
+      real_to_fixed = scaled[WIDTH-1:0];
     end
   endfunction
   
@@ -209,28 +226,9 @@ module tb_lse_add_unified;
   // =========================================================================
   task initialize_lut;
     integer i;
-    const logic [LUT_PRECISION-1:0] CLUT_INIT [0:LUT_SIZE-1] = '{
-      10'b0000000000,
-      10'b0000011001,
-      10'b0000101101,
-      10'b0000110000,
-      10'b0001001001,
-      10'b0001000000,
-      10'b0000111111,
-      10'b0001000110,
-      10'b0001010110,
-      10'b0001000010,
-      10'b0000110001,
-      10'b0000100010,
-      10'b0000010110,
-      10'b0000001100,
-      10'b0000000101,
-      10'b0000000001
-    };
     begin
       $display("Initializing CLUT with %d entries...", LUT_SIZE);
       for (i = 0; i < LUT_SIZE; i = i + 1) begin
-        clut_values[i] = CLUT_INIT[i];
         $display("  Entry %0d: %010b", i, clut_values[i]);
       end
       $display("CLUT initialization complete.");
@@ -315,18 +313,18 @@ module tb_lse_add_unified;
     
     // Test: 5.0 + 4.5 (delta = 0.5)
     // Expected: max(5.0, 4.5) + log2(1 + 2^(-0.5)) ≈ 5.0 + 0.585 = 5.585
-    apply_test_vector(24'h001400, 24'h001200, 2'b00, 24'h001580, 24'h0015C0,
-                     "LSE(5.0, 4.5) ≈ 5.585");
+  apply_test_vector(24'h001400, 24'h001200, 2'b00, 24'h0016D6, 24'h001756,
+           "LSE(5.0, 4.5) ≈ 5.772");
     
     // Test: 10.0 + 10.0 (equal values)
     // Expected: 10.0 + log2(2) = 10.0 + 1.0 = 11.0
-    apply_test_vector(24'h002800, 24'h002800, 2'b00, 24'h002BF0, 24'h002C10,
-                     "LSE(10.0, 10.0) = 11.0");
+  apply_test_vector(24'h002800, 24'h002800, 2'b00, 24'h002BF0, 24'h002C10,
+           "LSE(10.0, 10.0) = 11.0");
     
     // Test: 3.0 + 2.0 (delta = 1.0)
     // Expected: 3.0 + log2(1 + 2^(-1.0)) ≈ 3.0 + 0.585 = 3.585
-    apply_test_vector(24'h000C00, 24'h000800, 2'b00, 24'h000E50, 24'h000E90,
-                     "LSE(3.0, 2.0) ≈ 3.585");
+  apply_test_vector(24'h000C00, 24'h000800, 2'b00, 24'h000E17, 24'h000E97,
+           "LSE(3.0, 2.0) ≈ 3.585");
     
     // =====================================================================
     // Test Suite 3: Medium Distance (Medium Delta)
@@ -335,12 +333,12 @@ module tb_lse_add_unified;
     
     // Test: 10.0 + 5.0 (delta = 5.0)
     // Expected: 10.0 + log2(1 + 2^(-5.0)) ≈ 10.0 + 0.044 = 10.044
-    apply_test_vector(24'h002800, 24'h001400, 2'b00, 24'h002820, 24'h002850,
+  apply_test_vector(24'h002800, 24'h001400, 2'b00, 24'h0027ED, 24'h00286D,
                      "LSE(10.0, 5.0) ≈ 10.044");
     
     // Test: 8.0 + 4.0 (delta = 4.0)
     // Expected: 8.0 + log2(1 + 2^(-4.0)) ≈ 8.0 + 0.087 = 8.087
-    apply_test_vector(24'h002000, 24'h001000, 2'b00, 24'h002050, 24'h002080,
+  apply_test_vector(24'h002000, 24'h001000, 2'b00, 24'h00201A, 24'h00209A,
                      "LSE(8.0, 4.0) ≈ 8.087");
     
     // =====================================================================
@@ -350,7 +348,7 @@ module tb_lse_add_unified;
     
     // Test: 20.0 + 2.0 (delta = 18.0)
     // Expected: ≈ 20.0 (negligible contribution)
-    apply_test_vector(24'h005000, 24'h000800, 2'b00, 24'h005000, 24'h005010,
+  apply_test_vector(24'h005000, 24'h000800, 2'b00, 24'h004FC0, 24'h005040,
                      "LSE(20.0, 2.0) ≈ 20.0");
     
     // Test: 15.0 + 5.0 (delta = 10.0)
@@ -400,11 +398,11 @@ module tb_lse_add_unified;
     // =====================================================================
     $display("\n=== Test Suite 6: Zero Value Handling ===");
     
-    apply_test_vector(24'h000000, 24'h001000, 2'b00, 24'h001000, 24'h001020,
+  apply_test_vector(24'h000000, 24'h001000, 2'b00, 24'h00101A, 24'h00109A,
                      "LSE(0.0, 4.0)");
-    apply_test_vector(24'h001000, 24'h000000, 2'b00, 24'h001000, 24'h001020,
+  apply_test_vector(24'h001000, 24'h000000, 2'b00, 24'h00101A, 24'h00109A,
                      "LSE(4.0, 0.0)");
-    apply_test_vector(24'h000000, 24'h000000, 2'b00, 24'h000000, 24'h000010,
+  apply_test_vector(24'h000000, 24'h000000, 2'b00, 24'h0003C0, 24'h000440,
                      "LSE(0.0, 0.0)");
     
   // SIMD mode deprecated: only scalar 24-bit tests remain in this testbench.

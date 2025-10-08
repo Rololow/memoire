@@ -44,10 +44,10 @@ module tb_register_unified;
   register #(
     .WIDTH(WIDTH)
   ) dut (
-    .clk(clk),
-    .rst(rst),
-    .data_in(data_in),
-    .data_out(data_out)
+    .i_clk(clk),
+    .i_rst(rst),
+    .i_data_in(data_in),
+    .o_data_out(data_out)
   );
   
   // =========================================================================

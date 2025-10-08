@@ -11,10 +11,11 @@
 `timescale 1ns/1ps
 
 module lse_mult_simd (
-  input  logic [23:0] operand_a,
-  input  logic [23:0] operand_b,
-  input  logic [1:0]  simd_mode,   // 00:1x24, 01:2x12, 10:4x6
-  output logic [23:0] result       // Résultat additionné (log-space)
+  input  logic [23:0] i_operand_a,
+  input  logic [23:0] i_operand_b,
+  input  logic [1:0]  i_simd_mode,    // 00:1x24, 01:2x12, 10:4x6
+  output logic [23:0] o_result,       // Résultat additionné (log-space)
+  output logic [3:0]  o_lane_carry    // Carry-out par lane (LSB -> MSB)
 );
 
   localparam int WIDTH = 24;
@@ -35,28 +36,51 @@ module lse_mult_simd (
         assign reset_segment = 1'b0;
         assign carry_in_bit  = carry_chain[i];
       end else begin : subsequent_bits
-        assign reset_segment = ((simd_mode == 2'b01) && BOUNDARY_12) ||
-                               ((simd_mode == 2'b10) && BOUNDARY_6);
+        assign reset_segment = ((i_simd_mode == 2'b01) && BOUNDARY_12) ||
+                               ((i_simd_mode == 2'b10) && BOUNDARY_6);
 
         mux2 #(.WIDTH(1)) carry_mux (
-          .in0(carry_chain[i]),   // propagation du carry précédent
-          .in1(1'b0),             // coupe le carry entre lanes
-          .sel(reset_segment),
-          .out(carry_in_bit)
+          .i_in0(carry_chain[i]),   // propagation du carry précédent
+          .i_in1(1'b0),             // coupe le carry entre lanes
+          .i_sel(reset_segment),
+          .o_out(carry_in_bit)
         );
       end
 
       full_adder adder_bit (
-        .a   (operand_a[i]),
-        .b   (operand_b[i]),
-        .cin (carry_in_bit),
-        .sum (result[i]),
-        .cout(carry_chain[i+1])
+        .i_a   (i_operand_a[i]),
+        .i_b   (i_operand_b[i]),
+        .i_cin (carry_in_bit),
+        .o_sum (o_result[i]),
+        .o_cout(carry_chain[i+1])
       );
     end
   endgenerate
 
-  // Les carries de sortie de chaque lane sont ignorés
-  // (comportement wrap-around). Ajouter une saturation si nécessaire.
+  // Les carries lane sont désormais exposés pour un usage externe
+  // (ex. chaînage SIMD ou saturation explicite). Ajouter une saturation si nécessaire.
+
+  always_comb begin
+    o_lane_carry = '0;
+
+    unique case (i_simd_mode)
+      2'b00: begin
+        o_lane_carry[0] = carry_chain[WIDTH];
+      end
+      2'b01: begin
+        o_lane_carry[0] = carry_chain[12];
+        o_lane_carry[1] = carry_chain[WIDTH];
+      end
+      2'b10: begin
+        o_lane_carry[0] = carry_chain[6];
+        o_lane_carry[1] = carry_chain[12];
+        o_lane_carry[2] = carry_chain[18];
+        o_lane_carry[3] = carry_chain[WIDTH];
+      end
+      default: begin
+        o_lane_carry = '0;
+      end
+    endcase
+  end
 
 endmodule : lse_mult_simd

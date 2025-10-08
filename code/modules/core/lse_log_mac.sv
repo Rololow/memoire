@@ -12,28 +12,28 @@ module lse_log_mac #(
     parameter WIDTH = 24,
     parameter MAC_ID = 0           // Unique ID for this MAC unit
 )(
-    input  logic clk,
-    input  logic rst_n,
-    input  logic enable,
+    input  logic                 i_clk,
+    input  logic                 i_rst_n,
+    input  logic                 i_enable,
     
     // MAC operands (in log domain)
-    input  logic [WIDTH-1:0]     log_a,        // First multiplicand (log)
-    input  logic [WIDTH-1:0]     log_b,        // Second multiplicand (log)  
-    input  logic [WIDTH-1:0]     accumulator,  // Current accumulator value (log)
+    input  logic [WIDTH-1:0]     i_log_a,        // First multiplicand (log)
+    input  logic [WIDTH-1:0]     i_log_b,        // Second multiplicand (log)  
+    input  logic [WIDTH-1:0]     i_accumulator,  // Current accumulator value (log)
     
     // CLUT interface (connects to shared CLUT)
-    output logic [3:0]           clut_address,  // Address to shared CLUT
-    output logic                 clut_valid,    // Valid request to CLUT  
-    input  logic [9:0]           clut_correction, // Correction from shared CLUT
-    input  logic                 clut_ready,    // Ready signal from CLUT
+    output logic [3:0]           o_clut_address,  // Address to shared CLUT
+    output logic                 o_clut_valid,    // Valid request to CLUT  
+    input  logic [9:0]           i_clut_correction, // Correction from shared CLUT
+    input  logic                 i_clut_ready,    // Ready signal from CLUT
     
     // Control signals
-    input  logic                 load_acc,     // Load new accumulator value
-    input  logic                 bypass_mult,  // Bypass multiplier (add only)
+    input  logic                 i_load_acc,     // Load new accumulator value
+    input  logic                 i_bypass_mult,  // Bypass multiplier (add only)
     
     // Result output
-    output logic [WIDTH-1:0]     mac_result,   // MAC result (log domain)
-    output logic                 valid_out
+    output logic [WIDTH-1:0]     o_mac_result,   // MAC result (log domain)
+    output logic                 o_valid_out
 );
 
     // =============================================================================
@@ -56,14 +56,14 @@ module lse_log_mac #(
     // In log domain: log(a * b) = log(a) + log(b)
     
     always_comb begin : log_multiplier
-        if (bypass_mult) begin
+        if (i_bypass_mult) begin
             // Bypass mode: pass through log_a directly  
-            mult_result = log_a;
+            mult_result = i_log_a;
         end else begin
             // Standard log multiplication: addition in log domain
             // Check for overflow
-            if (log_a <= ({WIDTH{1'b1}} - log_b)) begin
-                mult_result = log_a + log_b;
+            if (i_log_a <= ({WIDTH{1'b1}} - i_log_b)) begin
+                mult_result = i_log_a + i_log_b;
             end else begin
                 // Saturate to prevent overflow
                 mult_result = {WIDTH{1'b1}};
@@ -75,18 +75,18 @@ module lse_log_mac #(
     // Accumulator Management
     // =============================================================================
     
-    always_ff @(posedge clk or negedge rst_n) begin : accumulator_reg
-        if (!rst_n) begin
+    always_ff @(posedge i_clk or negedge i_rst_n) begin : accumulator_reg
+        if (!i_rst_n) begin
             internal_acc <= '0;
             acc_valid <= 1'b0;
             first_op_after_load <= 1'b0;
         end else begin
-            if (load_acc) begin
+            if (i_load_acc) begin
                 // Load new accumulator value
-                internal_acc <= accumulator;
+                internal_acc <= i_accumulator;
                 acc_valid <= 1'b1;
                 first_op_after_load <= 1'b1; // Mark first operation after load
-            end else if (enable && lse_valid) begin
+            end else if (i_enable && lse_valid) begin
                 // Update accumulator with MAC result
                 internal_acc <= lse_result;
                 acc_valid <= 1'b1;
@@ -120,41 +120,41 @@ module lse_log_mac #(
         .WIDTH(WIDTH),
         .FRAC_BITS(10)
     ) lse_pe_inst (
-        .clk(clk),
-        .rst_n(rst_n),
-        .enable(enable),
+        .i_clk(i_clk),
+        .i_rst_n(i_rst_n),
+        .i_enable(i_enable),
         
         // LSE operands  
-        .operand_a(add_operand_a),
-        .operand_b(add_operand_b),
+        .i_operand_a(add_operand_a),
+        .i_operand_b(add_operand_b),
         
         // CLUT interface (forwarded to shared CLUT)
-        .clut_address(clut_address),
-        .clut_valid(clut_valid), 
-        .clut_correction(clut_correction),
-        .clut_ready(clut_ready),
+        .o_clut_address(o_clut_address),
+        .o_clut_valid(o_clut_valid), 
+        .i_clut_correction(i_clut_correction),
+        .i_clut_ready(i_clut_ready),
         
         // Result
-        .result(lse_result),
-        .valid_out(lse_valid)
+        .o_result(lse_result),
+        .o_valid_out(lse_valid)
     );
     
     // =============================================================================
     // Output Assignment
     // =============================================================================
     
-    assign mac_result = lse_result;
-    assign valid_out = lse_valid;
+    assign o_mac_result = lse_result;
+    assign o_valid_out = lse_valid;
     
     // =============================================================================
     // Debug and Monitoring
     // =============================================================================
     
     `ifdef DEBUG_MAC
-        always_ff @(posedge clk) begin
-            if (enable && valid_out) begin
+        always_ff @(posedge i_clk) begin
+            if (i_enable && o_valid_out) begin
                 $display("MAC[%0d] @ %0t: log_a=%h log_b=%h acc=%h -> result=%h", 
-                         MAC_ID, $time, log_a, log_b, internal_acc, mac_result);
+                         MAC_ID, $time, i_log_a, i_log_b, internal_acc, o_mac_result);
             end
         end
     `endif
@@ -166,20 +166,20 @@ module lse_log_mac #(
     `ifdef ASSERTIONS_ON
         // Check for proper reset behavior
         property p_reset_behavior;
-            @(posedge clk) (!rst_n) |-> !acc_valid && !valid_out;
+            @(posedge i_clk) (!i_rst_n) |-> !acc_valid && !o_valid_out;
         endproperty
         assert property (p_reset_behavior);
         
         // Check accumulator load behavior
         property p_acc_load;
-            @(posedge clk) disable iff (!rst_n)
-            load_acc |-> ##1 (internal_acc == $past(accumulator));
+            @(posedge i_clk) disable iff (!i_rst_n)
+            i_load_acc |-> ##1 (internal_acc == $past(i_accumulator));
         endproperty
         assert property (p_acc_load);
         
         // Coverage for MAC operation modes
-        covergroup cg_mac_modes @(posedge clk);
-            cp_bypass: coverpoint bypass_mult {
+        covergroup cg_mac_modes @(posedge i_clk);
+            cp_bypass: coverpoint i_bypass_mult {
                 bins normal = {0};
                 bins bypass = {1};
             }

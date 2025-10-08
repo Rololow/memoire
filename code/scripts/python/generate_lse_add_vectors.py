@@ -32,19 +32,23 @@ FRAC_BITS = 10
 SCALE = 1 << FRAC_BITS
 MASK = (1 << WIDTH) - 1
 NEG_INF_CODE = 1 << (WIDTH - 1)
+MIN_FIXED = -(1 << (WIDTH - 1))
+MAX_FIXED = (1 << (WIDTH - 1)) - 1
 
 
 def real_to_fixed(value: float) -> int:
     """Convert a base-2 logarithmic real value to unsigned fixed-point."""
     fixed = int(round(value * SCALE))
-    if fixed < 0:
-        fixed = 0
-    if fixed > MASK:
-        fixed = MASK
-    return fixed
+    if fixed < MIN_FIXED:
+        fixed = MIN_FIXED
+    if fixed > MAX_FIXED:
+        fixed = MAX_FIXED
+    return fixed & MASK
 
 
 def fixed_to_real(value: int) -> float:
+    if value & NEG_INF_CODE:
+        value = value - (1 << WIDTH)
     return float(value) / SCALE
 
 

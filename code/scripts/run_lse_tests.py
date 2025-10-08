@@ -39,6 +39,7 @@ TEST_CONFIGS = {
         "name": "LSE Add (Algorithm 1 Implementation)",
         "testbench": "tb_lse_add_unified",
         "sources": [
+            MODULES_DIR / "lut" / "lut.sv",
             MODULES_DIR / "core" / "lse_add.sv",
             TESTBENCH_DIR / "core" / "tb_lse_add_unified.sv"
         ],
@@ -53,14 +54,16 @@ TEST_CONFIGS = {
         ],
         "description": "Multiplication log-space"
     },
-    "lse_acc": {
-        "name": "LSE Accumulator (Core)",
-        "testbench": "tb_lse_acc_unified",
+    "lse_mult_simd": {
+        "name": "LSE Mult SIMD",
+        "testbench": "tb_lse_mult_simd",
         "sources": [
-            MODULES_DIR / "core" / "lse_acc.sv",
-            TESTBENCH_DIR / "core" / "tb_lse_acc_unified.sv"
+            MODULES_DIR / "utils" / "full_adder.sv",
+            MODULES_DIR / "utils" / "mux.sv",
+            MODULES_DIR / "core" / "lse_mult_simd.sv",
+            TESTBENCH_DIR / "core" / "tb_lse_mult_simd.sv"
         ],
-        "description": "Accumulation LSE 16-bit"
+        "description": "Addition log-space avec lanes SIMD"
     },
     "register": {
         "name": "Register (Core)",
@@ -70,24 +73,6 @@ TEST_CONFIGS = {
             TESTBENCH_DIR / "core" / "tb_register_unified.sv"
         ],
         "description": "Registre pipeline générique"
-    },
-    "lse_shared_system": {
-        "name": "LSE Shared System",
-        "testbench": "tb_lse_shared_system",
-        "sources": [
-            # Modules de base (ordre important pour les dépendances)
-            MODULES_DIR / "core" / "register.sv",
-            MODULES_DIR / "core" / "lse_add.sv",
-            MODULES_DIR / "core" / "lse_mult.sv",  # Utilisé par lse_pe_with_mux
-            MODULES_DIR / "core" / "lse_acc.sv",   # Utilisé par lse_pe_with_mux
-            MODULES_DIR / "lut" / "lse_clut_shared.sv",
-            MODULES_DIR / "core" / "lse_pe_with_mux.sv",
-            MODULES_DIR / "core" / "lse_log_mac.sv",
-            MODULES_DIR / "lse_shared_system.sv",
-            # Testbench en dernier
-            TESTBENCH_DIR / "tb_lse_shared_system.sv"
-        ],
-        "description": "Système complet avec 4 MACs et CLUT partagée"
     }
 }
 

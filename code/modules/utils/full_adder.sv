@@ -8,18 +8,18 @@
 `timescale 1ns/1ps
 
 module full_adder (
-  input  logic a,      // premier bit
-  input  logic b,      // deuxième bit
-  input  logic cin,    // carry in
-  output logic sum,    // résultat (a + b + cin) LSB
-  output logic cout    // carry out
+  input  logic i_a,      // premier bit
+  input  logic i_b,      // deuxième bit
+  input  logic i_cin,    // carry in
+  output logic o_sum,    // résultat (a + b + cin) LSB
+  output logic o_cout    // carry out
 );
 
   // Comportement combinatoire simple
   // sum = a ^ b ^ cin
   // cout = majority(a,b,cin) = (a & b) | (b & cin) | (a & cin)
 
-  assign sum  = a ^ b ^ cin;
-  assign cout = (a & b) | (b & cin) | (a & cin);
+  assign o_sum  = i_a ^ i_b ^ i_cin;
+  assign o_cout = (i_a & i_b) | (i_b & i_cin) | (i_a & i_cin);
 
 endmodule : full_adder

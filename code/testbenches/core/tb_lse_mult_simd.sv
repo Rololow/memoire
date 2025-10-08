@@ -17,13 +17,15 @@ module tb_lse_mult_simd;
   logic [23:0] operand_b;
   logic [1:0]  simd_mode;
   logic [23:0] result;
+  logic [3:0]  lane_carry;
 
   // Instantiation du DUT
   lse_mult_simd dut (
-    .operand_a (operand_a),
-    .operand_b (operand_b),
-    .simd_mode (simd_mode),
-    .result    (result)
+    .i_operand_a (operand_a),
+    .i_operand_b (operand_b),
+    .i_simd_mode (simd_mode),
+    .o_result    (result),
+    .o_lane_carry(lane_carry)
   );
 
   // Compteurs de tests
@@ -73,6 +75,46 @@ module tb_lse_mult_simd;
     endcase
   endfunction
 
+  function automatic logic [3:0] expected_carries(
+    input logic [23:0] a,
+    input logic [23:0] b,
+    input logic [1:0]  mode
+  );
+    logic [24:0] wide24;
+    logic [12:0] wide_low12, wide_high12;
+    logic [6:0]  wide_lane6;
+    begin
+      expected_carries = '0;
+
+      case (mode)
+        2'b00: begin
+          wide24 = {1'b0, a} + {1'b0, b};
+          expected_carries[0] = wide24[24];
+        end
+        2'b01: begin
+          wide_low12  = {1'b0, a[11:0]}  + {1'b0, b[11:0]};
+          wide_high12 = {1'b0, a[23:12]} + {1'b0, b[23:12]};
+          expected_carries[0] = wide_low12[12];
+          expected_carries[1] = wide_high12[12];
+        end
+        2'b10: begin
+          wide_lane6 = {1'b0, a[5:0]} + {1'b0, b[5:0]};
+          expected_carries[0] = wide_lane6[6];
+
+          wide_lane6 = {1'b0, a[11:6]} + {1'b0, b[11:6]};
+          expected_carries[1] = wide_lane6[6];
+
+          wide_lane6 = {1'b0, a[17:12]} + {1'b0, b[17:12]};
+          expected_carries[2] = wide_lane6[6];
+
+          wide_lane6 = {1'b0, a[23:18]} + {1'b0, b[23:18]};
+          expected_carries[3] = wide_lane6[6];
+        end
+        default: expected_carries = '0;
+      endcase
+    end
+  endfunction
+
   // Applique un test et vérifie la sortie
   task automatic run_test(
     input string       name,
@@ -81,6 +123,7 @@ module tb_lse_mult_simd;
     input logic [1:0]  mode
   );
     logic [23:0] expected;
+    logic [3:0]  expected_lane_carry;
     begin
       total_tests++;
 
@@ -91,8 +134,9 @@ module tb_lse_mult_simd;
       #1;  // temps de convergence combinatoire
 
       expected = expected_sum(a, b, mode);
+      expected_lane_carry = expected_carries(a, b, mode);
 
-      if (result === expected) begin
+      if ((result === expected) && (lane_carry === expected_lane_carry)) begin
         pass_count++;
         $display(" PASS - %s | mode=%b | A=%h B=%h -> %h", name, mode, a, b, result);
       end else begin
@@ -102,6 +146,8 @@ module tb_lse_mult_simd;
         $display("    B       : %h", b);
         $display("    Expected: %h", expected);
         $display("    Got     : %h", result);
+        $display("    Carry exp: %b", expected_lane_carry);
+        $display("    Carry got: %b", lane_carry);
       end
     end
   endtask
@@ -140,6 +186,15 @@ module tb_lse_mult_simd;
       $display("Des erreurs subsistent. Voir logs ci-dessus.");
     end
     $display("===============================================================");
+
+    $display("# Total Tests: %0d", total_tests);
+    $display("# Passed:      %0d", pass_count);
+    $display("# Failed:      %0d", fail_count);
+    if (fail_count == 0) begin
+      $display("# ALL TESTS PASSED! lse_mult_simd is functioning correctly.");
+    end else begin
+      $display("# SOME TESTS FAILED. lse_mult_simd requires attention.");
+    end
 
     $finish;
   end

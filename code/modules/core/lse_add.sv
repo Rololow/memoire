@@ -7,18 +7,19 @@ module lse_add #(
     parameter int LUT_PRECISION  = 10,
     parameter int FRAC_BITS      = 10  // Number of fractional bits for CLUT addressing
 )(
-    input  logic clk,
-    input  logic rst,
-    input  logic enable,
-    input  logic [WIDTH-1:0] operand_a,
-    input  logic [WIDTH-1:0] operand_b,
-    input  logic [LUT_PRECISION-1:0] clut_values [0:15],
-    input  logic [1:0] pe_mode,
-    output logic [WIDTH-1:0] result,
-    output logic valid_out
+    input  logic                         i_clk,
+    input  logic                         i_rst,
+    input  logic                         i_enable,
+    input  logic [WIDTH-1:0]             i_operand_a,
+    input  logic [WIDTH-1:0]             i_operand_b,
+    input  logic signed [LUT_PRECISION-1:0] i_clut_values [0:15],
+    input  logic [1:0]                   i_pe_mode,
+    output logic [WIDTH-1:0]             o_result,
+    output logic                         o_valid_out
 );
 
     localparam logic [WIDTH-1:0] NEG_INF_VAL   = {1'b1, {(WIDTH-1){1'b0}}};
+    localparam logic [WIDTH-1:0] POS_SAT_VAL   = {1'b0, {(WIDTH-1){1'b1}}};
     localparam int                INT_BITS     = WIDTH - FRAC_BITS;
     localparam int                CLUT_SIZE    = 16;
     localparam int                CLUT_ADDR_BITS  = 4;
@@ -31,18 +32,18 @@ module lse_add #(
     always_comb begin : lse_add_comb
         result_next = '0;
 
-        unique case (pe_mode)
+        unique case (i_pe_mode)
             2'b00: begin
-                if (operand_a == NEG_INF_VAL || operand_b == NEG_INF_VAL) begin
-                    if (operand_a == NEG_INF_VAL && operand_b == NEG_INF_VAL) begin
+                if (i_operand_a == NEG_INF_VAL || i_operand_b == NEG_INF_VAL) begin
+                    if (i_operand_a == NEG_INF_VAL && i_operand_b == NEG_INF_VAL) begin
                         result_next = NEG_INF_VAL;
-                    end else if (operand_a == NEG_INF_VAL) begin
-                        result_next = operand_b;
+                    end else if (i_operand_a == NEG_INF_VAL) begin
+                        result_next = i_operand_b;
                     end else begin
-                        result_next = operand_a;
+                        result_next = i_operand_a;
                     end
                 end else begin
-                    logic [WIDTH-1:0] x, y;
+                    logic signed [WIDTH-1:0] x, y;
                     logic signed [WIDTH:0] sub;
                     logic signed [INT_BITS-1:0] I_yx;
                     logic [FRAC_BITS-1:0] F_yx;
@@ -52,18 +53,21 @@ module lse_add #(
                     logic [FRAC_BITS-1:0] frac_part;
                     logic [CLUT_ADDR_BITS:0] rounded_index;
                     logic [CLUT_ADDR_BITS-1:0] clut_index;
-                    logic [LUT_PRECISION-1:0] clut_correction;
-                    logic [WIDTH:0] temp_result;
+                    logic signed [LUT_PRECISION-1:0] clut_correction;
+                    logic signed [WIDTH:0] temp_result;
+                    logic signed [WIDTH:0] clut_extension;
+                    logic signed [WIDTH:0] x_ext;
+                    logic signed [WIDTH:0] f_tilde_ext;
 
-                    if (operand_a >= operand_b) begin
-                        x = operand_a;
-                        y = operand_b;
+                    if ($signed(i_operand_a) >= $signed(i_operand_b)) begin
+                        x = $signed(i_operand_a);
+                        y = $signed(i_operand_b);
                     end else begin
-                        x = operand_b;
-                        y = operand_a;
+                        x = $signed(i_operand_b);
+                        y = $signed(i_operand_a);
                     end
 
-                    sub = $signed({1'b0, y}) - $signed({1'b0, x});
+                    sub = $signed({y[WIDTH-1], y}) - $signed({x[WIDTH-1], x});
 
                     I_yx = sub[WIDTH:FRAC_BITS];
                     F_yx = sub[FRAC_BITS-1:0];
@@ -86,12 +90,15 @@ module lse_add #(
                         clut_index = rounded_index[CLUT_ADDR_BITS-1:0];
                     end
 
-                    clut_correction = clut_values[clut_index];
+                    clut_correction = i_clut_values[clut_index];
 
-                    temp_result = x + f_tilde + {{(WIDTH-LUT_PRECISION){1'b0}}, clut_correction};
+                    clut_extension = $signed({{(WIDTH-LUT_PRECISION+1){clut_correction[LUT_PRECISION-1]}}, clut_correction});
+                    x_ext        = $signed({x[WIDTH-1], x});
+                    f_tilde_ext  = $signed({1'b0, f_tilde});
+                    temp_result  = x_ext + f_tilde_ext + clut_extension;
 
-                    if (temp_result[WIDTH]) begin
-                        result_next = {WIDTH{1'b1}};
+                    if (temp_result > $signed({1'b0, POS_SAT_VAL})) begin
+                        result_next = POS_SAT_VAL;
                     end else begin
                         result_next = temp_result[WIDTH-1:0];
                     end
@@ -99,29 +106,29 @@ module lse_add #(
             end
 
             default: begin
-                result_next = operand_a + operand_b;
+                result_next = i_operand_a + i_operand_b;
             end
         endcase
     end
 
-    always_ff @(posedge clk) begin : lse_add_sync
-        if (rst) begin
-            result    <= '0;
-            valid_out <= 1'b0;
-        end else if (enable) begin
-            result    <= result_next;
-            valid_out <= 1'b1;
+    always_ff @(posedge i_clk) begin : lse_add_sync
+        if (i_rst) begin
+            o_result    <= '0;
+            o_valid_out <= 1'b0;
+        end else if (i_enable) begin
+            o_result    <= result_next;
+            o_valid_out <= 1'b1;
         end else begin
-            valid_out <= 1'b0;
+            o_valid_out <= 1'b0;
         end
     end
 
     `ifdef DEBUG_LSE_ADD
-        always_ff @(posedge clk) begin
-            if (enable && pe_mode == 2'b00 &&
-                operand_a != NEG_INF_VAL && operand_b != NEG_INF_VAL) begin
+        always_ff @(posedge i_clk) begin
+            if (i_enable && i_pe_mode == 2'b00 &&
+                i_operand_a != NEG_INF_VAL && i_operand_b != NEG_INF_VAL) begin
                 $display("[LSE_ADD] t=%0t : a=%h, b=%h, result=%h",
-                         $time, operand_a, operand_b, result_next);
+                         $time, i_operand_a, i_operand_b, result_next);
             end
         end
     `endif

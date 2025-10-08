@@ -4,10 +4,9 @@ Implémentation matérielle de la fonction Log-Sum-Exp destinée au raisonnement
 
 ## Vue d’ensemble
 
--- **Format de données** : 24 bits (14 entiers / 10 fractionnaires). Note: les variantes SIMD 4×6 bits ont été retirées du code actif et archivées.
-- **Modules cœur** : addition LSE (Algorithm 1), multiplication log-space, accumulateur LSE, MAC log-space et CLUT partagée.
-- **Système partagé** : quatre MACs parallèles consommant une seule CLUT (arbitrage round-robin).
-- **Testbenches** : bancs auto‑vérifiants pour chaque bloc + un banc système complet.
+- **Format de données** : 24 bits (14 entiers / 10 fractionnaires) avec découpe SIMD optionnelle 2×12 ou 4×6 pour la multiplication.
+- **Modules cœur** : addition LSE (Algorithm 1), multiplication log-space (scalaire + SIMD), MAC log-space et LUT fixe 16×10 bits.
+- **Testbenches** : bancs auto‑vérifiants pour chaque bloc cœur avec génération automatique des vecteurs de référence.
 - **Scripts** : `run_lse_tests.py` pour compiler/simuler, `generate_lse_add_vectors.py` pour fabriquer des données de référence haute précision.
 
 ## Générer les vecteurs de référence LSE Add
@@ -37,7 +36,7 @@ Pré-requis :
 
 ```powershell
 cd C:\Users\waric\Documents\memoire\code\scripts
-C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py --modules lse_add lse_mult lse_acc register lse_shared_system --report ..\simulation_output\lse_test_report.json
+C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.py --modules lse_add lse_mult lse_mult_simd register --report ..\simulation_output\lse_test_report.json
 ```
 
 - `--modules` accepte `all` ou un sous-ensemble.
@@ -52,12 +51,10 @@ Le script synthétise un rapport JSON (succès, échecs, détails) et récapitul
 ```
 code/
 ├── modules/
-│   ├── core/               # lse_add.sv, lse_mult.sv, lse_acc.sv, lse_log_mac.sv, register.sv, etc.
-│   ├── lut/                # lse_clut_shared.sv (CLUT mutualisée)
-│   └── lse_shared_system.sv
+│   ├── core/               # lse_add.sv, lse_mult.sv, lse_mult_simd.sv, lse_log_mac.sv, register.sv, ...
+│   └── lut/                # lut.sv (valeurs constantes 16×10 de correction)
 ├── testbenches/
-│   ├── core/               # Bancs unitaires unifiés + références auto-générées
-│   └── tb_lse_shared_system.sv
+│   └── core/               # Bancs unitaires unifiés + références auto-générées
 ├── scripts/
 │   ├── run_lse_tests.py    # Pilote ModelSim/QuestaSim
 │   └── python/             # Générateurs Python (références LSE, CLUT)
@@ -68,12 +65,11 @@ code/
 
 ## Modules SystemVerilog
 
--- `core/lse_add.sv` – mise en œuvre matérielle de l’Algorithm 1 (delta, CLUT).
--- `core/lse_mult.sv` – addition en espace log (mode scalaire 24-bit). SIMD support retiré.
-- `core/lse_acc.sv` – accumulateur LSE (16 bits) avec correctifs graduels.
+- `core/lse_add.sv` – mise en œuvre matérielle de l’Algorithm 1 (delta, correction LUT).
+- `core/lse_mult.sv` – addition en espace log sur 24 bits (chemin scalaire).
+- `core/lse_mult_simd.sv` – addition log-space SIMD (modes 1×24, 2×12, 4×6) avec carries de lane exportés.
 - `core/lse_log_mac.sv` & `core/lse_pe_with_mux.sv` – unité MAC complète prête à l’intégration.
-- `lut/lse_clut_shared.sv` – ROM de correction (64×10 bits) avec arbitrage 4 voies.
-- `lse_shared_system.sv` – agrégation de quatre MACs et pipeline commun.
+- `modules/lut/lut.sv` – table de correction 16×10 bits partagée par l’addition LSE.
 
 Chaque banc d’essai unifié (`testbenches/core/*.sv`) expose un compteur Pass/Fail, applique les vecteurs de référence et génère un sommaire final.
 

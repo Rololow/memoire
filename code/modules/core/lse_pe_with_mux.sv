@@ -11,23 +11,23 @@ module lse_pe_with_mux #(
     parameter WIDTH = 24,
     parameter FRAC_BITS = 10      // Number of fractional bits for MUX selection
 )(
-    input  logic clk,
-    input  logic rst_n,
-    input  logic enable,
+    input  logic                 i_clk,
+    input  logic                 i_rst_n,
+    input  logic                 i_enable,
     
     // LSE operands
-    input  logic [WIDTH-1:0]     operand_a,
-    input  logic [WIDTH-1:0]     operand_b,
+    input  logic [WIDTH-1:0]     i_operand_a,
+    input  logic [WIDTH-1:0]     i_operand_b,
     
     // CLUT interface (connects to shared CLUT)
-    output logic [3:0]           clut_address,  // Address to shared CLUT
-    output logic                 clut_valid,    // Valid request to CLUT
-    input  logic [9:0]           clut_correction, // Correction from shared CLUT
-    input  logic                 clut_ready,    // Ready signal from CLUT (valid_out)
+    output logic [3:0]           o_clut_address,  // Address to shared CLUT
+    output logic                 o_clut_valid,    // Valid request to CLUT
+    input  logic [9:0]           i_clut_correction, // Correction from shared CLUT
+    input  logic                 i_clut_ready,    // Ready signal from CLUT (valid_out)
     
     // Result output
-    output logic [WIDTH-1:0]     result,
-    output logic                 valid_out
+    output logic [WIDTH-1:0]     o_result,
+    output logic                 o_valid_out
 );
 
     // =============================================================================
@@ -64,28 +64,28 @@ module lse_pe_with_mux #(
     always_comb begin : lse_computation_stage1
         
         // Check for special values (negative infinity)
-        if (operand_a == NEG_INF_VAL || operand_b == NEG_INF_VAL) begin
-            if (operand_a == NEG_INF_VAL && operand_b == NEG_INF_VAL) begin
+        if (i_operand_a == NEG_INF_VAL || i_operand_b == NEG_INF_VAL) begin
+            if (i_operand_a == NEG_INF_VAL && i_operand_b == NEG_INF_VAL) begin
                 larger = NEG_INF_VAL;  // -inf + (-inf) = -inf
                 smaller = '0;
                 diff = '0;
-            end else if (operand_a == NEG_INF_VAL) begin
-                larger = operand_b;    // -inf + x = x
+            end else if (i_operand_a == NEG_INF_VAL) begin
+                larger = i_operand_b;    // -inf + x = x
                 smaller = '0;
                 diff = '0;
             end else begin
-                larger = operand_a;    // x + (-inf) = x
+                larger = i_operand_a;    // x + (-inf) = x
                 smaller = '0;
                 diff = '0;
             end
         end else begin
             // Standard LSE comparison
-            if (operand_a >= operand_b) begin
-                larger = operand_a;
-                smaller = operand_b;
+            if (i_operand_a >= i_operand_b) begin
+                larger = i_operand_a;
+                smaller = i_operand_b;
             end else begin
-                larger = operand_b;
-                smaller = operand_a;
+                larger = i_operand_b;
+                smaller = i_operand_a;
             end
             
             diff = $signed({1'b0, smaller}) - $signed({1'b0, larger}); // Always ≤ 0
@@ -108,14 +108,14 @@ module lse_pe_with_mux #(
             f_tilde_fraction = abs_diff[FRAC_BITS-1:0];
             
             // Map 10-bit fraction to 4-bit CLUT address (16 entries)
-            clut_address = f_tilde_fraction[FRAC_BITS-1:FRAC_BITS-4];
-            clut_valid = 1'b1;
+            o_clut_address = f_tilde_fraction[FRAC_BITS-1:FRAC_BITS-4];
+            o_clut_valid = 1'b1;
             
         end else begin
             // Very small contribution - no correction needed
             f_tilde_fraction = '0;
-            clut_address = 4'h0;
-            clut_valid = 1'b0;
+            o_clut_address = 4'h0;
+            o_clut_valid = 1'b0;
         end
     end
     
@@ -123,18 +123,18 @@ module lse_pe_with_mux #(
     // Stage 1 Pipeline Register
     // =============================================================================
     
-    always_ff @(posedge clk or negedge rst_n) begin : stage1_pipeline
-        if (!rst_n) begin
+    always_ff @(posedge i_clk or negedge i_rst_n) begin : stage1_pipeline
+        if (!i_rst_n) begin
             stage1_larger <= '0;
             stage1_smaller <= '0;
             stage1_diff <= '0;
             stage1_clut_addr <= 4'h0;
             stage1_valid <= 1'b0;
-        end else if (enable) begin
+        end else if (i_enable) begin
             stage1_larger <= larger;
             stage1_smaller <= smaller;
             stage1_diff <= diff;
-            stage1_clut_addr <= clut_address;
+            stage1_clut_addr <= o_clut_address;
             stage1_valid <= 1'b1;
         end else begin
             stage1_valid <= 1'b0;
@@ -174,7 +174,7 @@ module lse_pe_with_mux #(
             // Always progress if stage1 is valid
             stage2_base_result <= base_result;
             // Use CLUT correction if ready, otherwise use 0
-            stage2_correction <= clut_ready ? clut_correction : '0;
+            stage2_correction <= i_clut_ready ? i_clut_correction : '0;
             stage2_valid <= 1'b1;
         end else begin
             stage2_valid <= 1'b0;
@@ -207,8 +207,8 @@ module lse_pe_with_mux #(
     // Output Assignment
     // =============================================================================
     
-    assign result = result_next;
-    assign valid_out = valid_next;
+    assign o_result = result_next;
+    assign o_valid_out = valid_next;
     
     // =============================================================================
     // Verification Support
@@ -217,26 +217,26 @@ module lse_pe_with_mux #(
     `ifdef ASSERTIONS_ON
         // Check CLUT address bounds
         always_comb begin
-            assert (!clut_valid || clut_address < 16)
-                else $error("CLUT address %0d exceeds bounds", clut_address);
+            assert (!o_clut_valid || o_clut_address < 16)
+                else $error("CLUT address %0d exceeds bounds", o_clut_address);
         end
         
         // Check for proper handshaking
         property p_clut_handshake;
-            @(posedge clk) disable iff (!rst_n)
-            clut_valid |-> ##[1:5] clut_ready;
+            @(posedge i_clk) disable iff (!i_rst_n)
+            o_clut_valid |-> ##[1:5] i_clut_ready;
         endproperty
         
         assert property (p_clut_handshake);
         
         // Coverage for MUX selection patterns
-        covergroup cg_mux_patterns @(posedge clk);
-            cp_clut_addr: coverpoint clut_address {
+        covergroup cg_mux_patterns @(posedge i_clk);
+            cp_clut_addr: coverpoint o_clut_address {
                 bins low   = {[0:3]};
                 bins mid   = {[4:11]};
                 bins high  = {[12:15]};
             }
-            cp_valid: coverpoint clut_valid {
+            cp_valid: coverpoint o_clut_valid {
                 bins active = {1};
                 bins idle   = {0};
             }

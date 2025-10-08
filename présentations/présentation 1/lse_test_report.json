@@ -1,33 +1,33 @@
 {
-  "timestamp": "2025-10-08T17:40:09.797504",
+  "timestamp": "2025-10-08T21:28:56.778604",
   "summary": {
-    "total_modules": 1,
-    "passed_modules": 0,
-    "partial_modules": 1,
+    "total_modules": 4,
+    "passed_modules": 4,
+    "partial_modules": 0,
     "failed_modules": 0,
-    "total_tests": 44,
-    "total_passed": 39,
-    "total_failed": 5,
-    "global_success_rate": 88.63636363636364,
-    "total_duration": 2.147986
+    "total_tests": 81,
+    "total_passed": 81,
+    "total_failed": 0,
+    "global_success_rate": 100.0,
+    "total_duration": 6.008263
   },
   "modules": [
     {
       "module_id": "lse_add",
       "name": "LSE Add (Algorithm 1 Implementation)",
       "description": "Addition LSE avec impl\u00e9mentation Algorithm 1 (LSE-PE NeurIPS 2024)",
-      "status": "PARTIAL",
+      "status": "PASS",
       "total_tests": 44,
-      "passed_tests": 39,
-      "failed_tests": 5,
-      "success_rate": 88.63636363636364,
-      "duration": 2.147986,
+      "passed_tests": 44,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 1.792797,
       "details": [
         "PASS - close_delta_0p5",
         "PASS - close_delta_1",
         "PASS - equal_5",
         "PASS - four_vs_zero",
-        "FAIL - fractional_0p25",
+        "PASS - fractional_0p25",
         "PASS - fractional_1p5",
         "PASS - fractional_2p75",
         "PASS - large_delta_18",
@@ -43,97 +43,97 @@
         {
           "label": "close_delta_1",
           "status": "PASS",
-          "error": -0.000978
+          "error": -0.004884
         },
         {
           "label": "equal_5",
           "status": "PASS",
-          "error": 0.0
+          "error": 0.00293
         },
         {
           "label": "four_vs_zero",
           "status": "PASS",
-          "error": -0.000549
+          "error": -0.004455
         },
         {
           "label": "fractional_0p25",
-          "status": "FAIL",
-          "error": 0.29492
+          "status": "PASS",
+          "error": -0.004884
         },
         {
           "label": "fractional_1p5",
           "status": "PASS",
-          "error": -0.000228
+          "error": 0.000748
         },
         {
           "label": "fractional_2p75",
           "status": "PASS",
-          "error": 0.000142
+          "error": 0.001118
         },
         {
           "label": "large_delta_18",
           "status": "PASS",
-          "error": -6e-06
+          "error": 0.002924
         },
         {
           "label": "medium_delta_4",
           "status": "PASS",
-          "error": -0.000549
+          "error": -0.004455
         },
         {
           "label": "medium_delta_5",
           "status": "PASS",
-          "error": 0.01127
+          "error": 0.007364
         },
         {
           "label": "random_000",
           "status": "PASS",
-          "error": 0.003022
+          "error": -0.000884
         },
         {
           "label": "random_001",
           "status": "PASS",
-          "error": -0.001871
+          "error": -0.005777
         },
         {
           "label": "random_002",
           "status": "PASS",
-          "error": -0.000258
+          "error": 0.002671
         },
         {
           "label": "random_003",
           "status": "PASS",
-          "error": -0.006598
+          "error": -0.003669
         },
         {
           "label": "random_004",
           "status": "PASS",
-          "error": 0.005308
+          "error": 0.001402
         },
         {
           "label": "random_005",
           "status": "PASS",
-          "error": 0.001182
+          "error": 0.003135
         },
         {
           "label": "random_006",
           "status": "PASS",
-          "error": 0.00222
+          "error": 0.003196
         },
         {
           "label": "random_007",
           "status": "PASS",
-          "error": -0.006906
+          "error": -0.003976
         },
         {
           "label": "random_008",
           "status": "PASS",
-          "error": -0.004131
+          "error": -0.001201
         },
         {
           "label": "random_009",
           "status": "PASS",
-          "error": -0.005201
+          "error": -0.002272
         },
         {
           "label": "random_010",
@@ -143,37 +143,37 @@
         {
           "label": "random_011",
           "status": "PASS",
-          "error": 0.012489
+          "error": 0.007607
         },
         {
           "label": "random_012",
           "status": "PASS",
-          "error": -0.003953
+          "error": -0.001023
         },
         {
           "label": "random_013",
           "status": "PASS",
-          "error": 0.002558
+          "error": 0.003535
         },
         {
           "label": "random_014",
           "status": "PASS",
-          "error": -0.003566
+          "error": -0.002589
         },
         {
           "label": "random_015",
           "status": "PASS",
-          "error": -0.002182
+          "error": 0.000748
         },
         {
           "label": "zero_vs_4",
           "status": "PASS",
-          "error": -0.000549
+          "error": -0.004455
         },
         {
           "label": "zero_zero",
           "status": "PASS",
-          "error": 0.0
+          "error": 0.00293
         },
         {
           "label": "NEG_INF + Normal = Normal",
@@ -186,59 +186,59 @@
           "error": 0.0
         },
         {
-          "label": "LSE(5.0, 4.5) \ufffd?? 5.585",
-          "status": "FAIL",
+          "label": "LSE(5.0, 4.5) \ufffd?? 5.772",
+          "status": "PASS",
           "error": -6.9e-05
         },
         {
           "label": "LSE(10.0, 10.0) = 11.0",
           "status": "PASS",
-          "error": 0.0
+          "error": 0.00293
         },
         {
           "label": "LSE(3.0, 2.0) \ufffd?? 3.585",
           "status": "PASS",
-          "error": -0.000978
+          "error": -0.004884
         },
         {
           "label": "LSE(10.0, 5.0) \ufffd?? 10.044",
           "status": "PASS",
-          "error": 0.01127
+          "error": 0.007364
         },
         {
           "label": "LSE(8.0, 4.0) \ufffd?? 8.087",
           "status": "PASS",
-          "error": -0.000549
+          "error": -0.004455
         },
         {
           "label": "LSE(20.0, 2.0) \ufffd?? 20.0",
           "status": "PASS",
-          "error": -6e-06
+          "error": 0.002924
         },
         {
           "label": "LSE(15.0, 5.0) \ufffd?? 15.0",
           "status": "PASS",
-          "error": -0.000432
+          "error": 0.002498
         },
         {
           "label": "LSE(0.0, 4.0)",
-          "status": "FAIL",
-          "error": -0.000549
+          "status": "PASS",
+          "error": -0.004455
         },
         {
           "label": "LSE(4.0, 0.0)",
-          "status": "FAIL",
-          "error": -0.000549
+          "status": "PASS",
+          "error": -0.004455
         },
         {
           "label": "LSE(0.0, 0.0)",
-          "status": "FAIL",
-          "error": 0.0
+          "status": "PASS",
+          "error": 0.00293
         },
         {
           "label": "Large values near overflow",
           "status": "PASS",
-          "error": 0.000488
+          "error": -0.999512
         },
         {
           "label": "Max value + small value",
@@ -246,6 +246,61 @@
           "error": 0.0
         }
       ]
+    },
+    {
+      "module_id": "lse_mult",
+      "name": "LSE Mult (Core)",
+      "description": "Multiplication log-space",
+      "status": "PASS",
+      "total_tests": 9,
+      "passed_tests": 9,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 1.280639,
+      "details": [
+        "ALL TESTS PASSED! LSE Mult module is functioning correctly."
+      ],
+      "errors": []
+    },
+    {
+      "module_id": "lse_mult_simd",
+      "name": "LSE Mult SIMD",
+      "description": "Addition log-space avec lanes SIMD",
+      "status": "PASS",
+      "total_tests": 9,
+      "passed_tests": 9,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 1.521946,
+      "details": [
+        "PASS - 24-bit simple | mode=00 | A=000123 B=000111 -> 000234",
+        "PASS - 24-bit carry propagate | mode=00 | A=00ffff B=000001 -> 010000",
+        "PASS - 24-bit overflow wrap | mode=00 | A=ffffff B=000001 -> 000000",
+        "PASS - 2\ufffd?12 independent | mode=01 | A=abcdef B=111111 -> bcdf00",
+        "PASS - 2\ufffd?12 carry cut | mode=01 | A=fff000 B=001fff -> 000fff",
+        "PASS - 2\ufffd?12 wrap both lanes | mode=01 | A=fffeee B=001234 -> 000122",
+        "PASS - 4\ufffd?6 independent | mode=10 | A=123456 B=010101 -> 133557",
+        "PASS - 4\ufffd?6 carry cut | mode=10 | A=3f003f B=010101 -> 3c0100",
+        "PASS - 4\ufffd?6 wrap | mode=10 | A=3f3f3f B=010101 -> 3c3000",
+        "ALL TESTS PASSED! lse_mult_simd is functioning correctly."
+      ],
+      "errors": []
+    },
+    {
+      "module_id": "register",
+      "name": "Register (Core)",
+      "description": "Registre pipeline g\u00e9n\u00e9rique",
+      "status": "PASS",
+      "total_tests": 19,
+      "passed_tests": 19,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "duration": 1.412881,
+      "details": [
+        "PASS - Data Persistence: Output unchanged without clock",
+        "ALL TESTS PASSED! Register module is functioning correctly."
+      ],
+      "errors": []
     }
   ]
 }

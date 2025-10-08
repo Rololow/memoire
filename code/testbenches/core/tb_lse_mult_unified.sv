@@ -36,10 +36,10 @@ module tb_lse_mult_unified;
   lse_mult #(
     .WIDTH(WIDTH)
   ) dut (
-    .operand_a(operand_a),
-    .operand_b(operand_b),
-    .pe_mode(pe_mode),
-    .result(result)
+    .i_operand_a(operand_a),
+    .i_operand_b(operand_b),
+    .i_pe_mode(pe_mode),
+    .o_result(result)
   );
   
   // =========================================================================
