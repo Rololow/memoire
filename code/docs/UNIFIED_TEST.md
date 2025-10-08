@@ -80,40 +80,6 @@ C:/Users/waric/AppData/Local/Programs/Python/Python312/python.exe run_lse_tests.
 | `--no-clut-update` | Désactive la mise à jour automatique des valeurs CLUT |
 | `-h, --help` | Affiche l'aide complète |
 
-## Modules Disponibles
-
-### 1. lse_add (Algorithm 1 Implementation)
-**Description** : Addition LSE avec implémentation complète de l'Algorithm 1 du papier NeurIPS 2024
-
-**Caractéristiques** :
-- Implémentation fidèle de l'algorithme LSE-PE
-- Support CLUT avec 1024 entrées
- - Mode 24-bit avec format fixed-point [14.10]
- - Note: les variantes SIMD 4×6-bit ont été retirées du design actif et archivées. Voir `code/docs/archived_simd/` pour les artefacts historiques.
-- Gestion des valeurs spéciales (NEG_INF)
-
-**Tests inclus** :
-- Valeurs spéciales (NEG_INF)
-- Valeurs proches (petit delta)
-- Distance moyenne
-- Grande distance
-- Propriété commutative
-- Gestion du zéro
- - Mode SIMD 6-bit (supprimé)
-- Cas limites et overflow
-
-### 2. lse_mult
-**Description** : Multiplication en espace logarithmique
-
-### 3. lse_acc
-**Description** : Accumulateur LSE 16-bit
-
-### 4. register
-**Description** : Registre pipeline générique
-
-### 5. lse_shared_system
-**Description** : Système complet avec 4 MACs et CLUT partagée
-
 ## Comprendre les Résultats
 
 ### Format de Sortie
@@ -212,33 +178,6 @@ python run_lse_tests.py -m lse_add -v
 
 **Solution** : Le script gère automatiquement avec `encoding='utf-8', errors='replace'`
 
-## Structure des Fichiers
-
-```
-code/
-├── scripts/
-│   ├── run_lse_tests.py          ← Script principal unifié
-│   └── python/
-│       └── generate_lse_add_vectors.py
-├── modules/
-│   └── core/
-│       ├── lse_add.sv            ← Implémentation Algorithm 1
-│       ├── lse_mult.sv
-│       ├── lse_acc.sv
-│       └── register.sv
-├── testbenches/
-│   └── core/
-│       ├── reference/            ← Vecteurs auto-générés (SVH)
-│       ├── tb_lse_add_unified.sv ← Testbench mise à jour
-│       ├── tb_lse_mult_unified.sv
-│       ├── tb_lse_acc_unified.sv
-│       └── tb_register_unified.sv
-├── simulation_output/
-│   ├── *.json                    ← Rapports et vecteurs de référence
-│   └── *.vcd                     ← Fichiers de forme d'onde
-└── work/                         ← Bibliothèque ModelSim
-```
-
 ## Exemple de Session Complète
 
 ```bash
@@ -255,44 +194,6 @@ python run_lse_tests.py --report rapport_complet.json
 type ..\simulation_output\rapport_complet.json | ConvertFrom-Json | Format-List
 ```
 
-## Amélioration Continue
-
-### Objectifs à Court Terme
-
-1. **Améliorer la précision pour les petits deltas**
-   - Affiner les valeurs CLUT
-   - Ajuster l'approximation en deux étapes
-
-2. **Gérer correctement le cas zéro**
-   - Ajouter un cas spécial dans le code
-   - Mettre à jour les tests
-
-3. **Atteindre 90%+ de réussite**
-   - Cible : 17/19 tests minimum
-
-### Objectifs à Long Terme
-
-1. **Valider tous les modules**
-   - LSE Mult : 100%
-   - LSE Acc : 100%
-   - System : 100%
-
-2. **Intégration continue**
-   - Automatiser les tests
-   - Génération automatique de rapports
-
-3. **Documentation**
-   - Diagrammes de timing
-   - Analyse de performance
-   - Guide d'intégration
-
-## Références
-
-- **Documentation Algorithm** : `docs/LSE_ADD_ALGORITHM.md`
-- **Guide de Test Détaillé** : `testbenches/core/README_LSE_ADD_TEST.md`
-- **Architecture Système** : `docs/SHARED_ARCHITECTURE.md`
-- **Paper Original** : Yao et al., "LSE-PE: Hardware Efficient for Tractable Probabilistic Reasoning", NeurIPS 2024
-
 ## Support
 
 Pour toute question ou problème :
@@ -304,5 +205,4 @@ Pour toute question ou problème :
 ---
 
 *Document créé le 7 octobre 2025*  
-*Version : 2.0 - Script Python Unifié*  
-*Statut : ✅ Opérationnel*
+*Version : 2.0 - Script Python Unifié*
